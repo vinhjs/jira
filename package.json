@@ -1,8 +1,13 @@
 {
   "dependencies": {
+    "async": "^2.6.1",
     "body-parser": "^1.18.3",
     "chart.js": "^2.7.3",
     "express": "^4.16.4",
-    "nprogress": "^0.2.0"
+    "http-auth": "^3.2.3",
+    "lodash": "^4.17.11",
+    "nprogress": "^0.2.0",
+    "redis": "^2.8.0",
+    "request": "^2.88.0"
   }
 }
