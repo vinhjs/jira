@@ -3,10 +3,10 @@ var _ = require('lodash');
 var redis = require('./redis');
 var getWorklog = function(key, auth, cb){
     var url = 'https://issues.qup.vn/rest/api/2/issue/'+key+'/worklog';
-    getCacheRedis(url, function(err, data) {
-        if (!err && data) {
-            cb(err, data);
-        } else {
+    // getCacheRedis(url, function(err, data) {
+        // if (!err && data) {
+            // cb(err, data);
+        // } else {
             request({
                 url: url,
                 timeout: 10000,
@@ -24,14 +24,14 @@ var getWorklog = function(key, auth, cb){
                         }
                     }
                     var rs = _.map(result.worklogs, filter);
-                    setCacheRedis(url, rs, 60 * 60 * 30, function(err, ok){})
+                    // setCacheRedis(url, rs, 60 * 60 * 30, function(err, ok){})
                     cb(null, rs);
                 } else {
                     cb("notfound", [])
                 }
             })
-        }
-    })   
+        // }
+    // })   
 }
 function getCacheRedis(key, cb){
     redis.get(key, function(err, data){

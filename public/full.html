@@ -1,0 +1,229 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>QUp - JIRA REPORT</title>
+    <script src='/public/nprogress.js'></script>
+    <link rel='stylesheet' href='/public/nprogress.css'/>
+	<script src="/public/Chart.bundle.js"></script>
+	<style type="text/css">/* Chart.js */
+		@-webkit-keyframes chartjs-render-animation{from{opacity:0.99}to{opacity:1}}@keyframes chartjs-render-animation{from{opacity:0.99}to{opacity:1}}.chartjs-render-monitor{-webkit-animation:chartjs-render-animation 0.001s;animation:chartjs-render-animation 0.001s;}</style>
+	<script src="/public/utils.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script> 
+	<style>
+	canvas {
+		-moz-user-select: none;
+		-webkit-user-select: none;
+		-ms-user-select: none;
+	}
+	</style>
+</head>
+
+<body>
+	<div style="width: 100%">
+		<canvas id="canvas1"></canvas>
+    </div>
+    <div style="width: 100%">
+		<canvas id="canvas2"></canvas>
+    </div>
+    <div style="width: 100%">
+		<canvas id="canvas3"></canvas>
+	</div>
+	<script>
+        // DEPRECATED
+        NProgress.start();
+		var color = Chart.helpers.color;
+		
+		window.onload = function() {
+			var ctx1 = document.getElementById('canvas1').getContext('2d');
+            var ctx2 = document.getElementById('canvas2').getContext('2d');
+            var ctx3 = document.getElementById('canvas3').getContext('2d');
+            $.get('/database', function (record) {
+                var barChartLogworkData = record.barChartLogworkData;
+                var barChartComponentData = record.barChartComponentData;
+                var config1 = {
+                    type: 'bar',
+                    data: barChartLogworkData,
+                    options: {	
+                        title: {
+                            display: true,
+                            text: 'LOGWORK - SPENT TIME'
+                        },
+                        tooltips: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                // Use the footer callback to display the sum of the items showing in the tooltip
+                                footer: function(tooltipItems, data) {
+                                    var sum = 0;
+
+                                    tooltipItems.forEach(function(tooltipItem) {
+                                        sum += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+                                    });
+                                    return 'Sum: ' + sum;
+                                }
+                            },
+                            footerFontStyle: 'normal'
+                        },
+                        responsive: true,
+                        scales: {
+                            xAxes: [{
+                                stacked: true,
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Members'
+                                }
+                            }],
+                            yAxes: [{
+                                stacked: true,
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Hours'
+                                }
+                            }]
+                        },
+                        
+                    }
+                }
+                new Chart(ctx1, config1);
+
+                ///
+                var timeFormat = 'MM/DD/YYYY HH:mm';
+                var lineChartData = {
+                    labels: [],
+                    datasets: []
+                };
+                _.map(_.keys(record.dates).sort(), function(time){
+                    lineChartData.labels.push(moment(time).toDate());        
+                })
+                let users = _.keys(record.users);
+                _.map(users, function(user){
+                    console.log(user);
+                    console.log(window.jira_color.users[user])
+                    var dataset = {
+                        label: user,
+                        backgroundColor: window.jira_color.users[user] || 'rbg(0,0,0)',
+                        borderColor: window.jira_color.users[user] || 'rbg(0,0,0)',
+                        fill: false,
+                        data: []
+                    };        
+                    _.map(_.keys(record.dates).sort(), function(time){
+                        if (record.dates[time][user]){
+                            dataset.data.push({
+                                x: moment(time).format(timeFormat),
+                                y: record.dates[time][user].total/60/60
+                            })
+                        } else {
+                            dataset.data.push({
+                                x: moment(time).format(timeFormat),
+                                y: 0
+                            })
+                        }       
+                    })
+                    lineChartData.datasets.push(dataset);
+                })              
+                console.log(JSON.stringify(lineChartData))  
+                var config2 = {
+                    type: 'line',
+                    data: lineChartData,
+                    options: {
+                        title: {
+                            display: true,
+                            text: 'LOGWORK ACTIVITIES'
+                        },
+                        zoomEnabled: true,
+                        tooltips: {
+                            mode: 'index',
+                            callbacks: {
+                                // Use the footer callback to display the sum of the items showing in the tooltip
+                                footer: function(tooltipItems, data) {
+                                    var sum = 0;
+
+                                    tooltipItems.forEach(function(tooltipItem) {
+                                        sum += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].y;
+                                    });
+                                    return 'Sum: ' + sum;
+                                },
+                            },
+                            footerFontStyle: 'normal'
+                        },
+                        scales: {
+                            xAxes: [{
+                                type: 'time',
+                                time: {
+                                    format: timeFormat,
+                                    // round: 'day'
+                                    tooltipFormat: 'll HH:mm'
+                                },
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Date'
+                                }
+                            }],
+                            yAxes: [{
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'hours'
+                                }
+                            }]
+                        },
+                    }
+                };
+                window.myLine = new Chart(ctx2, config2);
+
+                //
+                var config3 = {
+                    type: 'bar',
+                    data: barChartComponentData,
+                    options: {	
+                        title: {
+                            display: true,
+                            text: 'COMPONENTS - STATUS'
+                        },
+                        tooltips: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                // Use the footer callback to display the sum of the items showing in the tooltip
+                                footer: function(tooltipItems, data) {
+                                    var sum = 0;
+
+                                    tooltipItems.forEach(function(tooltipItem) {
+                                        sum += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+                                    });
+                                    return 'Sum: ' + sum;
+                                }
+                            },
+                            footerFontStyle: 'normal'
+                        },
+                        responsive: true,
+                        scales: {
+                            xAxes: [{
+                                stacked: true,
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Members'
+                                }
+                            }],
+                            yAxes: [{
+                                stacked: true,
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Hours'
+                                }
+                            }]
+                        },
+                        
+                    }
+                }
+                new Chart(ctx3, config3);
+                NProgress.done();
+            })
+			
+		};
+	</script>
+</body>
+
+</html>

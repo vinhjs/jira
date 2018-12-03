@@ -12,26 +12,29 @@ var barStackChartData = {
     datasets: [{
         label: 'Bugs',
         backgroundColor: chartColors.red,
-        data: []
+        data: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     }, {
         label: 'Sub-task',
         backgroundColor: chartColors.blue,
-        data: []
+        data: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     }, {
         label: 'Improvement',
         backgroundColor: chartColors.green,
-        data: []
+        data: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     }, {
         label: 'Task',
         backgroundColor: chartColors.orange,
-        data: []
+        data: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     },{
         label: 'Total issues',
         backgroundColor: chartColors.purple,
-        data: []
+        data: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     }]
 
 };
-function buildChartStack(chart, data){
+function buildChartStack(chart, issue){
     chart = chart || barStackChartData;
+    switch (issue.issuetype) {
+        
+    }
 }
