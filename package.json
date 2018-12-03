@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "start" : "node index.js"
+  },
   "dependencies": {
     "async": "^2.6.1",
     "body-parser": "^1.18.3",
