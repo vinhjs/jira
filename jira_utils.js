@@ -1,7 +1,7 @@
 var request = require('request');
 var _ = require('lodash');
 var MongoClient = require('mongodb').MongoClient;
-var url      = 'mongodb://192.168.2.85:27017';
+var url      = 'mongodb://localhost:27017';
 var mongodb = null;
 function connectMongo(){
     MongoClient.connect(url, function(err, client) {

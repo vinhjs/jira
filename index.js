@@ -39,6 +39,7 @@ var basic = auth.basic({
     })
 });
 var authMiddleware = auth.connect(basic);
+var jiraDomain = 'https://issues.qup.vn';
 var sprints = [
     {
         id: 283,
@@ -103,6 +104,7 @@ app.get('/sample', authMiddleware, function(req, res){
         users: {},
         dates: {},
         components: {},
+        fouls: [],
         barChartLogworkData: {
             labels: [],
             datasets: []
@@ -114,17 +116,17 @@ app.get('/sample', authMiddleware, function(req, res){
     } 
     var startAt = 0;
     var total = 100;
-    var jql= "Sprint in (293)";
+    var jql= "project in (SL, KAN) AND updated >= -2w";
     jira_utils.getResults(jql, function(err, data){
         if (data) {
             data.data = JSON.parse(data.data);
-            res.send(data);
+            res.send(data.data);
         } else {
             async.whilst(
                 function () { return startAt < total; },
                 function (callback) {
                     request({
-                        url: 'https://issues.qup.vn/rest/api/2/search?maxResults=100&startAt='+startAt+'&jql=' + jql,
+                        url: jiraDomain+'/rest/api/2/search?maxResults=100&startAt='+startAt+'&jql=' + jql,
                         timeout: 10000,
                         json: true,
                         headers: {
@@ -140,6 +142,17 @@ app.get('/sample', authMiddleware, function(req, res){
                                 finish.issuetypes = _.uniq(finish.issuetypes.push(issuetype));
                                 var components = _.get(issue, "fields.components", []);
                                 if (issue.fields.subtasks.length == 0) {
+                                    var timespent = _.get(issue, "fields.timespent", 0);
+                                    if (!timespent && _.indexOf(["Story"], issuetype) == -1 && _.indexOf(["Open", "Closed", "In Progress"], issuestatus) == -1) {
+                                        if(issue.fields.assignee) {
+                                            finish.fouls.push({
+                                                issueLink: jiraDomain + '/browse/' + issue.key,
+                                                user: issue.fields.assignee.name,
+                                                avatar: issue.fields.assignee.avatarUrls["24x24"],
+                                                msg: "No logwork"
+                                            })
+                                        }                                        
+                                    }
                                     components.forEach(function(component){
                                         if (finish.components[component.name]) {
                                             finish.components[component.name].total++;
@@ -247,7 +260,8 @@ app.get('/sample', authMiddleware, function(req, res){
                     finish.barChartComponentData = {
                         labels: components,
                         datasets: datasets
-                    } 
+                    }
+
                     jira_utils.setResults(jql, finish);
                     res.send(finish);
                 }

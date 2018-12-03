@@ -22,6 +22,15 @@
 </head>
 
 <body>
+    <div style="width: 100%">
+        <select>
+            <option value="volvo">Volvo</option>
+            <option value="saab">Saab</option>
+            <option value="mercedes">Mercedes</option>
+            <option value="audi">Audi</option>
+        </select> 
+        <button id="process">Process</button>
+    </div>
 	<div style="width: 100%">
 		<canvas id="canvas1"></canvas>
     </div>
@@ -30,7 +39,17 @@
     </div>
     <div style="width: 100%">
 		<canvas id="canvas3"></canvas>
-	</div>
+    </div>
+    <div style="width: 100%">
+        <table id="noLogwork" style="width: 100%" border="1">
+            <tr>
+                <th>No.</th>
+                <th>User</th>
+                <th>Key</th>
+                <th>Detail</th>
+            </tr>            
+        </table>
+    </div>
 	<script>
         // DEPRECATED
         NProgress.start();
@@ -40,7 +59,8 @@
 			var ctx1 = document.getElementById('canvas1').getContext('2d');
             var ctx2 = document.getElementById('canvas2').getContext('2d');
             var ctx3 = document.getElementById('canvas3').getContext('2d');
-            $.get('/database', function (record) {
+            $.get('/sample', function (record) {
+                console.log(record);
                 var barChartLogworkData = record.barChartLogworkData;
                 var barChartComponentData = record.barChartComponentData;
                 var config1 = {
@@ -204,7 +224,7 @@
                                 stacked: true,
                                 scaleLabel: {
                                     display: true,
-                                    labelString: 'Members'
+                                    labelString: 'Components'
                                 }
                             }],
                             yAxes: [{
@@ -219,6 +239,19 @@
                     }
                 }
                 new Chart(ctx3, config3);
+                var table = document.getElementById("noLogwork");
+                for (var i in record.fouls){
+                    var row = table.insertRow(0);
+                    var cell1 = row.insertCell(0);
+                    var cell2 = row.insertCell(1);
+                    var cell3 = row.insertCell(2);
+                    var cell4 = row.insertCell(3);
+                    cell1.innerHTML = parseInt(i) + 1;
+                    cell2.innerHTML = record.fouls[i].user;
+                    cell3.innerHTML = '<a target="_blank" rel="noopener noreferrer" href="'+record.fouls[i].issueLink+'">'+record.fouls[i].issueLink+'</a>';
+                    cell4.innerHTML = record.fouls[i].msg;
+                }
+                
                 NProgress.done();
             })
 			
