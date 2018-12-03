@@ -1,25 +1,24 @@
 {
   "issuetypes": [],
-  "point": 267.5,
+  "point": 80.5,
   "issues": {
-    "total": 1034,
-    "Sub-task": 616,
-    "Bug": 98,
-    "Bug-SubTask": 192,
-    "Improvement": 27,
-    "Story": 75,
-    "Task": 24,
+    "total": 241,
     "status": {
-      "Test": 64,
-      "Done": 673,
-      "Open": 132,
-      "Closed": 70,
-      "In Review": 31,
-      "In Progress": 41,
-      "Resolved": 15,
-      "InReview": 8
+      "Done": 135,
+      "Test": 10,
+      "Open": 55,
+      "Closed": 9,
+      "In Review": 12,
+      "In Progress": 11,
+      "Resolved": 6,
+      "InReview": 3
     },
-    "Bug - New Feature": 2
+    "Sub-task": 165,
+    "Bug": 20,
+    "Improvement": 11,
+    "Bug-SubTask": 8,
+    "Story": 30,
+    "Task": 7
   },
   "users": {
     "chuong.nguyen": {
@@ -28,38 +27,37 @@
       "Bug-SubTask": 3600
     },
     "chuong.vo": {
-      "total": 77400,
-      "Sub-task": 70200,
+      "total": 70200,
+      "Sub-task": 63000,
       "Bug": 3600,
       "Bug-SubTask": 3600
     },
     "vinh.tran": {
-      "total": 101400,
-      "Sub-task": 90600,
+      "total": 94200,
+      "Sub-task": 87000,
       "Improvement": 3600,
-      "Bug": 5400,
-      "Bug-SubTask": 1800
+      "Bug": 3600
     },
     "nghia.huynht": {
-      "total": 59400,
-      "Sub-task": 59400
+      "total": 43200,
+      "Sub-task": 43200
     },
     "hoang.nguyen": {
       "total": 189900,
       "Sub-task": 189900
     },
-    "duy.nguyen": {
-      "total": 104400,
-      "Sub-task": 104400
-    },
-    "vi.leh": {
-      "total": 41400,
-      "Sub-task": 41400
-    },
     "thuan.ho": {
       "total": 189000,
       "Sub-task": 172800,
       "Story": 16200
+    },
+    "duy.nguyen": {
+      "total": 118800,
+      "Sub-task": 118800
+    },
+    "vi.leh": {
+      "total": 41400,
+      "Sub-task": 41400
     },
     "nhan.phan": {
       "total": 140400,
@@ -70,74 +68,6 @@
       "Sub-task": 39600,
       "Improvement": 9000,
       "Task": 46800
-    },
-    "hien.do": {
-      "total": 143640,
-      "Sub-task": 143640
-    },
-    "phuong.tran": {
-      "total": 362400,
-      "Bug": 15000,
-      "Bug-SubTask": 82800,
-      "Sub-task": 256800,
-      "Bug - New Feature": 600,
-      "Task": 7200
-    },
-    "quynh.hoang": {
-      "total": 150300,
-      "Bug-SubTask": 17700,
-      "Bug": 6600,
-      "Story": 3600,
-      "Sub-task": 122400
-    },
-    "anh.bui": {
-      "total": 251400,
-      "Bug-SubTask": 34200,
-      "Bug": 3600,
-      "Sub-task": 213600
-    },
-    "dong.nguyen": {
-      "total": 147600,
-      "Bug-SubTask": 10800,
-      "Improvement": 18000,
-      "Sub-task": 118800
-    },
-    "vi.phantt": {
-      "total": 37800,
-      "Sub-task": 37800
-    },
-    "nguyen.tran": {
-      "total": 117000,
-      "Sub-task": 117000
-    },
-    "hoang.dinh": {
-      "total": 64800,
-      "Sub-task": 64800
-    },
-    "dung.nguyen": {
-      "total": 232200,
-      "Sub-task": 232200
-    },
-    "nhuan.vu": {
-      "total": 55200,
-      "Sub-task": 54000,
-      "Bug": 1200
-    },
-    "tuan.nguyena": {
-      "total": 14400,
-      "Sub-task": 14400
-    },
-    "duy.phan": {
-      "total": 81000,
-      "Sub-task": 81000
-    },
-    "hao.le": {
-      "total": 10800,
-      "Sub-task": 10800
-    },
-    "thuan.le": {
-      "total": 14400,
-      "Sub-task": 14400
     }
   },
   "dates": {
@@ -163,13 +93,13 @@
         "total": 10800,
         "Sub-task": 10800
       },
-      "vi.leh": {
-        "total": 7200,
-        "Sub-task": 7200
-      },
       "thuan.ho": {
         "total": 18000,
         "Sub-task": 18000
+      },
+      "vi.leh": {
+        "total": 7200,
+        "Sub-task": 7200
       },
       "nghia.huynht": {
         "total": 3600,
@@ -178,47 +108,6 @@
       "nhan.phan": {
         "total": 7200,
         "Sub-task": 7200
-      },
-      "hien.do": {
-        "total": 47040,
-        "Sub-task": 47040
-      },
-      "phuong.tran": {
-        "total": 35400,
-        "Bug": 4200,
-        "Bug-SubTask": 23400,
-        "Sub-task": 7200,
-        "Bug - New Feature": 600
-      },
-      "quynh.hoang": {
-        "total": 1800,
-        "Bug-SubTask": 1800
-      },
-      "anh.bui": {
-        "total": 25200,
-        "Bug-SubTask": 7200,
-        "Bug": 3600,
-        "Sub-task": 14400
-      },
-      "dong.nguyen": {
-        "total": 10800,
-        "Bug-SubTask": 10800
-      },
-      "hoang.dinh": {
-        "total": 14400,
-        "Sub-task": 14400
-      },
-      "vi.phantt": {
-        "total": 10800,
-        "Sub-task": 10800
-      },
-      "tuan.nguyena": {
-        "total": 14400,
-        "Sub-task": 14400
-      },
-      "dung.nguyen": {
-        "total": 57600,
-        "Sub-task": 57600
       }
     },
     "2018-11-29": {
@@ -239,10 +128,9 @@
         "Sub-task": 10800
       },
       "vinh.tran": {
-        "total": 7800,
+        "total": 4200,
         "Sub-task": 600,
-        "Bug": 5400,
-        "Bug-SubTask": 1800
+        "Bug": 3600
       },
       "duy.nguyen": {
         "total": 14400,
@@ -255,36 +143,6 @@
       "vi.leh": {
         "total": 3600,
         "Sub-task": 3600
-      },
-      "quynh.hoang": {
-        "total": 3600,
-        "Bug": 3600
-      },
-      "phuong.tran": {
-        "total": 14400,
-        "Sub-task": 3600,
-        "Bug-SubTask": 10800
-      },
-      "hien.do": {
-        "total": 48600,
-        "Sub-task": 48600
-      },
-      "nguyen.tran": {
-        "total": 21600,
-        "Sub-task": 21600
-      },
-      "anh.bui": {
-        "total": 21600,
-        "Bug-SubTask": 7200,
-        "Sub-task": 14400
-      },
-      "vi.phantt": {
-        "total": 3600,
-        "Sub-task": 3600
-      },
-      "dung.nguyen": {
-        "total": 7200,
-        "Sub-task": 7200
       }
     },
     "2018-11-28": {
@@ -311,31 +169,36 @@
       "chuong.nguyen": {
         "total": 25200,
         "Sub-task": 25200
+      }
+    },
+    "2018-11-26": {
+      "vinh.tran": {
+        "total": 38400,
+        "Sub-task": 38400
       },
-      "hien.do": {
-        "total": 30000,
-        "Sub-task": 30000
+      "duy.nguyen": {
+        "total": 3600,
+        "Sub-task": 3600
       },
-      "quynh.hoang": {
-        "total": 4800,
-        "Story": 3600,
-        "Bug": 1200
+      "chuong.nguyen": {
+        "total": 3600,
+        "Sub-task": 3600
       },
-      "nghia.huynht": {
-        "total": 9000,
-        "Sub-task": 9000
+      "hoang.nguyen": {
+        "total": 10800,
+        "Sub-task": 10800
       },
-      "dong.nguyen": {
-        "total": 43200,
-        "Sub-task": 43200
+      "thuan.ho": {
+        "total": 46800,
+        "Sub-task": 46800
       },
-      "anh.bui": {
-        "total": 28800,
-        "Sub-task": 28800
+      "nhan.phan": {
+        "total": 14400,
+        "Sub-task": 14400
       },
-      "phuong.tran": {
-        "total": 32400,
-        "Sub-task": 32400
+      "vi.leh": {
+        "total": 19800,
+        "Sub-task": 19800
       }
     },
     "2018-11-27": {
@@ -362,121 +225,31 @@
       "nhan.phan": {
         "total": 7200,
         "Sub-task": 7200
-      },
-      "hien.do": {
-        "total": 7200,
-        "Sub-task": 7200
-      },
-      "vi.phantt": {
-        "total": 3600,
-        "Sub-task": 3600
-      },
-      "anh.bui": {
-        "total": 18000,
-        "Bug-SubTask": 12600,
-        "Sub-task": 5400
-      },
-      "nguyen.tran": {
-        "total": 19800,
-        "Sub-task": 19800
-      },
-      "hoang.dinh": {
-        "total": 21600,
-        "Sub-task": 21600
-      },
-      "nghia.huynht": {
-        "total": 7200,
-        "Sub-task": 7200
-      },
-      "dung.nguyen": {
-        "total": 14400,
-        "Sub-task": 14400
-      },
-      "quynh.hoang": {
-        "total": 23400,
-        "Sub-task": 23400
-      },
-      "phuong.tran": {
-        "total": 18000,
-        "Sub-task": 14400,
-        "Bug": 3600
       }
     },
-    "2018-11-26": {
-      "vinh.tran": {
-        "total": 38400,
-        "Sub-task": 38400
-      },
+    "2018-12-03": {
       "duy.nguyen": {
-        "total": 3600,
-        "Sub-task": 3600
-      },
-      "chuong.nguyen": {
-        "total": 3600,
-        "Sub-task": 3600
-      },
-      "hoang.nguyen": {
-        "total": 10800,
-        "Sub-task": 10800
-      },
-      "thuan.ho": {
-        "total": 46800,
-        "Sub-task": 46800
-      },
-      "vi.leh": {
-        "total": 19800,
-        "Sub-task": 19800
-      },
-      "nhan.phan": {
         "total": 14400,
         "Sub-task": 14400
-      },
-      "phuong.tran": {
-        "total": 5400,
-        "Bug-SubTask": 5400
-      },
-      "chuong.vo": {
-        "total": 7200,
-        "Sub-task": 7200
-      },
-      "nguyen.tran": {
-        "total": 10800,
-        "Sub-task": 10800
-      },
-      "vi.phantt": {
-        "total": 5700,
-        "Sub-task": 5700
-      },
-      "hoang.dinh": {
-        "total": 10800,
-        "Sub-task": 10800
-      },
-      "dung.nguyen": {
-        "total": 25200,
-        "Sub-task": 25200
-      },
-      "quynh.hoang": {
-        "total": 18000,
-        "Sub-task": 18000
       }
     },
     "2018-11-23": {
+      "thuan.ho": {
+        "total": 27000,
+        "Sub-task": 23400,
+        "Story": 3600
+      },
       "chuong.nguyen": {
         "total": 25200,
         "Sub-task": 25200
-      },
-      "thuan.ho": {
-        "total": 27000,
-        "Story": 3600,
-        "Sub-task": 23400
       },
       "nhan.phan": {
         "total": 32400,
         "Sub-task": 32400
       },
       "vinh.tran": {
-        "total": 10800,
-        "Sub-task": 10800
+        "total": 7200,
+        "Sub-task": 7200
       },
       "duy.nguyen": {
         "total": 10800,
@@ -493,26 +266,32 @@
       "nghia.huynht": {
         "total": 7200,
         "Sub-task": 7200
+      }
+    },
+    "2018-11-20": {
+      "vinh.tran": {
+        "total": 3600,
+        "Sub-task": 3600
       },
-      "quynh.hoang": {
-        "total": 1200,
-        "Bug-SubTask": 1200
-      },
-      "nguyen.tran": {
-        "total": 25200,
-        "Sub-task": 25200
-      },
-      "dung.nguyen": {
+      "chuong.nguyen": {
         "total": 10800,
         "Sub-task": 10800
       },
-      "phuong.tran": {
-        "total": 10800,
-        "Sub-task": 10800
+      "chuong.vo": {
+        "total": 14400,
+        "Sub-task": 14400
       },
-      "vi.phantt": {
-        "total": 2700,
-        "Sub-task": 2700
+      "duy.nguyen": {
+        "total": 18000,
+        "Sub-task": 18000
+      },
+      "hai.ta": {
+        "total": 14400,
+        "Sub-task": 14400
+      },
+      "thuan.ho": {
+        "total": 7200,
+        "Sub-task": 7200
       }
     },
     "2018-11-21": {
@@ -535,54 +314,6 @@
       "chuong.vo": {
         "total": 3600,
         "Bug-SubTask": 3600
-      },
-      "phuong.tran": {
-        "total": 34200,
-        "Bug-SubTask": 27000,
-        "Sub-task": 3600,
-        "Bug": 3600
-      },
-      "dung.nguyen": {
-        "total": 25200,
-        "Sub-task": 25200
-      }
-    },
-    "2018-11-20": {
-      "vinh.tran": {
-        "total": 3600,
-        "Sub-task": 3600
-      },
-      "chuong.vo": {
-        "total": 14400,
-        "Sub-task": 14400
-      },
-      "chuong.nguyen": {
-        "total": 10800,
-        "Sub-task": 10800
-      },
-      "duy.nguyen": {
-        "total": 18000,
-        "Sub-task": 18000
-      },
-      "hai.ta": {
-        "total": 14400,
-        "Sub-task": 14400
-      },
-      "thuan.ho": {
-        "total": 7200,
-        "Sub-task": 7200
-      },
-      "quynh.hoang": {
-        "total": 4800,
-        "Bug-SubTask": 4800
-      },
-      "phuong.tran": {
-        "total": 5400,
-        "Bug-SubTask": 5400
-      },
-      "dung.nguyen": {
-        "total": 7200,
-        "Sub-task": 7200
       }
     },
     "2018-11-22": {
@@ -593,28 +324,6 @@
       "nghia.huynht": {
         "total": 10800,
         "Sub-task": 10800
-      },
-      "anh.bui": {
-        "total": 40500,
-        "Bug-SubTask": 7200,
-        "Sub-task": 33300
-      },
-      "hoang.dinh": {
-        "total": 7200,
-        "Sub-task": 7200
-      },
-      "quynh.hoang": {
-        "total": 25200,
-        "Sub-task": 25200
-      },
-      "duy.phan": {
-        "total": 39600,
-        "Sub-task": 39600
-      },
-      "phuong.tran": {
-        "total": 18000,
-        "Sub-task": 14400,
-        "Bug": 3600
       }
     },
     "2018-11-19": {
@@ -625,47 +334,23 @@
       "hoang.nguyen": {
         "total": 18000,
         "Sub-task": 18000
-      },
-      "dung.nguyen": {
-        "total": 14400,
-        "Sub-task": 14400
-      },
-      "dong.nguyen": {
-        "total": 18000,
-        "Improvement": 18000
-      },
-      "quynh.hoang": {
-        "total": 9900,
-        "Bug-SubTask": 9900
-      },
-      "nguyen.tran": {
-        "total": 21600,
-        "Sub-task": 21600
-      },
-      "phuong.tran": {
-        "total": 36000,
-        "Sub-task": 36000
       }
     },
     "2018-12-01": {
       "chuong.nguyen": {
         "total": 10800,
         "Sub-task": 10800
-      },
-      "hoang.dinh": {
-        "total": 10800,
-        "Sub-task": 10800
       }
     },
     "2018-11-16": {
-      "vinh.tran": {
-        "total": 9000,
-        "Sub-task": 9000
-      },
       "hai.ta": {
         "total": 23400,
         "Sub-task": 14400,
         "Improvement": 9000
+      },
+      "vinh.tran": {
+        "total": 9000,
+        "Sub-task": 9000
       },
       "nhan.phan": {
         "total": 14400,
@@ -678,31 +363,6 @@
       "duy.nguyen": {
         "total": 7200,
         "Sub-task": 7200
-      },
-      "dung.nguyen": {
-        "total": 39600,
-        "Sub-task": 39600
-      },
-      "phuong.tran": {
-        "total": 17400,
-        "Bug-SubTask": 10800,
-        "Sub-task": 6600
-      },
-      "nguyen.tran": {
-        "total": 18000,
-        "Sub-task": 18000
-      },
-      "dong.nguyen": {
-        "total": 28800,
-        "Sub-task": 28800
-      },
-      "anh.bui": {
-        "total": 28800,
-        "Sub-task": 28800
-      },
-      "hien.do": {
-        "total": 10800,
-        "Sub-task": 10800
       }
     },
     "2018-11-14": {
@@ -710,33 +370,17 @@
         "total": 7200,
         "Sub-task": 7200
       },
-      "hai.ta": {
-        "total": 21600,
-        "Task": 21600
-      },
       "chuong.vo": {
         "total": 28800,
         "Sub-task": 28800
       },
+      "hai.ta": {
+        "total": 21600,
+        "Task": 21600
+      },
       "chuong.nguyen": {
         "total": 3600,
         "Sub-task": 3600
-      },
-      "dong.nguyen": {
-        "total": 18000,
-        "Sub-task": 18000
-      },
-      "dung.nguyen": {
-        "total": 21600,
-        "Sub-task": 21600
-      },
-      "anh.bui": {
-        "total": 18000,
-        "Sub-task": 18000
-      },
-      "phuong.tran": {
-        "total": 106200,
-        "Sub-task": 106200
       }
     },
     "2018-11-13": {
@@ -751,19 +395,6 @@
       "chuong.nguyen": {
         "total": 10800,
         "Sub-task": 10800
-      },
-      "quynh.hoang": {
-        "total": 34200,
-        "Bug": 1800,
-        "Sub-task": 32400
-      },
-      "anh.bui": {
-        "total": 21600,
-        "Sub-task": 21600
-      },
-      "duy.phan": {
-        "total": 41400,
-        "Sub-task": 41400
       }
     },
     "2018-11-15": {
@@ -782,22 +413,6 @@
       "vinh.tran": {
         "total": 3600,
         "Sub-task": 3600
-      },
-      "dong.nguyen": {
-        "total": 18000,
-        "Sub-task": 18000
-      },
-      "anh.bui": {
-        "total": 25200,
-        "Sub-task": 25200
-      },
-      "dung.nguyen": {
-        "total": 9000,
-        "Sub-task": 9000
-      },
-      "hao.le": {
-        "total": 10800,
-        "Sub-task": 10800
       }
     },
     "2018-10-09": {
@@ -805,87 +420,23 @@
         "total": 3600,
         "Sub-task": 3600
       }
-    },
-    "2018-11-12": {
-      "nhuan.vu": {
-        "total": 54000,
-        "Sub-task": 54000
-      },
-      "dong.nguyen": {
-        "total": 10800,
-        "Sub-task": 10800
-      },
-      "quynh.hoang": {
-        "total": 23400,
-        "Sub-task": 23400
-      },
-      "anh.bui": {
-        "total": 23400,
-        "Sub-task": 23400
-      },
-      "phuong.tran": {
-        "total": 7200,
-        "Task": 7200
-      }
-    },
-    "2018-11-09": {
-      "nhuan.vu": {
-        "total": 1200,
-        "Bug": 1200
-      }
-    },
-    "2018-11-17": {
-      "phuong.tran": {
-        "total": 21600,
-        "Sub-task": 21600
-      }
-    },
-    "2018-11-08": {
-      "anh.bui": {
-        "total": 300,
-        "Sub-task": 300
-      }
-    },
-    "2018-11-01": {
-      "vi.phantt": {
-        "total": 7800,
-        "Sub-task": 7800
-      }
-    },
-    "2018-11-07": {
-      "vi.phantt": {
-        "total": 900,
-        "Sub-task": 900
-      }
-    },
-    "2018-10-31": {
-      "vi.phantt": {
-        "total": 2700,
-        "Sub-task": 2700
-      }
-    },
-    "2018-10-19": {
-      "thuan.le": {
-        "total": 14400,
-        "Sub-task": 14400
-      }
     }
   },
   "components": {
     "Admin Page": {
-      "total": 53,
-      "Test": 4,
-      "Open": 13,
+      "total": 51,
+      "Done": 36,
+      "Test": 1,
       "Closed": 1,
-      "Done": 30,
-      "In Progress": 5
+      "Open": 11,
+      "In Progress": 2
     },
     "Report": {
-      "total": 48,
-      "Test": 5,
-      "Open": 11,
-      "Done": 27,
-      "In Progress": 2,
+      "total": 46,
+      "Done": 31,
+      "Test": 2,
+      "Open": 9,
+      "In Progress": 1,
       "Closed": 2,
       "InReview": 1
     },
@@ -895,45 +446,37 @@
       "Resolved": 1
     },
     "Auto Dispatching": {
-      "total": 83,
-      "Test": 4,
-      "Done": 46,
-      "In Review": 16,
+      "total": 81,
+      "Test": 5,
+      "Done": 47,
+      "In Review": 12,
       "Closed": 4,
       "In Progress": 2,
       "Open": 11
     },
     "Payment": {
-      "total": 30,
-      "Done": 15,
-      "In Progress": 3,
+      "total": 29,
+      "Done": 16,
+      "In Progress": 4,
       "Test": 3,
-      "Open": 7,
+      "Open": 4,
       "Closed": 1,
       "InReview": 1
     },
     "Data Base": {
-      "total": 6,
-      "Done": 5,
-      "Test": 1
+      "total": 5,
+      "Done": 5
     },
     "New cc": {
-      "total": 95,
-      "Done": 53,
-      "Open": 25,
-      "In Progress": 4,
-      "Closed": 5,
-      "In Review": 4,
-      "Test": 4
+      "total": 2,
+      "Done": 1,
+      "Open": 1
     },
     "iOS Pax": {
-      "total": 108,
-      "Closed": 2,
-      "Open": 6,
-      "Done": 94,
-      "In Review": 2,
-      "Test": 2,
-      "In Progress": 2
+      "total": 3,
+      "Closed": 1,
+      "Open": 1,
+      "Done": 1
     },
     "Old CC": {
       "total": 4,
@@ -945,87 +488,23 @@
       "Open": 5
     },
     "Android Pax": {
-      "total": 103,
-      "Open": 6,
-      "Done": 85,
-      "Test": 3,
-      "Closed": 5,
-      "In Review": 2,
-      "In Progress": 2
-    },
-    "DMC": {
-      "total": 22,
-      "Open": 5,
-      "In Review": 1,
-      "Closed": 1,
-      "Done": 13,
-      "Test": 1,
-      "In Progress": 1
-    },
-    "Android Driver App": {
-      "total": 307,
-      "Open": 12,
-      "In Progress": 3,
-      "Done": 259,
-      "In Review": 6,
-      "Test": 4,
-      "Closed": 22,
-      "InReview": 1
-    },
-    "iOS Driver": {
-      "total": 307,
-      "Open": 9,
-      "In Progress": 3,
-      "Done": 263,
-      "Test": 7,
-      "In Review": 1,
-      "Closed": 24
-    },
-    "Driver signup": {
-      "total": 39,
-      "In Progress": 6,
-      "Test": 29,
-      "Open": 4
-    },
-    "Web Booking": {
-      "total": 7,
-      "Done": 7
-    },
-    "Partner App Android": {
-      "total": 1,
+      "total": 2,
+      "Open": 1,
       "Done": 1
-    },
-    "New CC": {
-      "total": 1,
-      "Resolved": 1
     }
   },
   "barChartLogworkData": {
     "labels": [
       "chuong.nguyen",
-      "hien.do",
-      "phuong.tran",
       "chuong.vo",
       "vinh.tran",
-      "quynh.hoang",
-      "anh.bui",
-      "nghia.huynht",
       "hoang.nguyen",
-      "thuan.ho",
+      "nghia.huynht",
       "duy.nguyen",
-      "dong.nguyen",
+      "thuan.ho",
       "vi.leh",
       "nhan.phan",
-      "vi.phantt",
-      "nguyen.tran",
-      "hoang.dinh",
-      "dung.nguyen",
-      "hai.ta",
-      "nhuan.vu",
-      "tuan.nguyena",
-      "duy.phan",
-      "hao.le",
-      "thuan.le"
+      "hai.ta"
     ],
     "datasets": [
       {
@@ -1033,91 +512,24 @@
         "backgroundColor": "rgb(255, 99, 132)",
         "data": [
           46,
-          39.9,
-          71.33333333333333,
-          19.5,
-          25.166666666666668,
-          34,
-          59.333333333333336,
-          16.5,
+          17.5,
+          24.166666666666668,
           52.75,
-          48,
-          29,
+          12,
           33,
+          48,
           11.5,
           39,
-          10.5,
-          32.5,
-          18,
-          64.5,
-          11,
-          15,
-          4,
-          22.5,
-          3,
-          4
-        ]
-      },
-      {
-        "label": "Bug",
-        "backgroundColor": "rgb(255, 159, 64)",
-        "data": [
-          0,
-          0,
-          4.166666666666667,
-          1,
-          1.5,
-          1.8333333333333333,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0.3333333333333333
-        ]
-      },
-      {
-        "label": "Bug-SubTask",
-        "backgroundColor": "rgb(255, 205, 86)",
-        "data": [
-          1,
-          0,
-          23,
-          1,
-          0.5,
-          4.916666666666667,
-          9.5,
-          0,
-          0,
-          0,
-          0,
-          3
+          11
         ]
       },
       {
         "label": "Improvement",
-        "backgroundColor": "rgb(75, 192, 192)",
+        "backgroundColor": "rgb(255, 159, 64)",
         "data": [
           0,
           0,
-          0,
-          0,
           1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          5,
           0,
           0,
           0,
@@ -1128,24 +540,12 @@
         ]
       },
       {
-        "label": "Bug - New Feature",
-        "backgroundColor": "rgb(54, 162, 235)",
-        "data": [
-          0,
-          0,
-          0.16666666666666666
-        ]
-      },
-      {
         "label": "Story",
-        "backgroundColor": "rgb(153, 102, 255)",
+        "backgroundColor": "rgb(255, 205, 86)",
         "data": [
           0,
           0,
           0,
-          0,
-          0,
-          1,
           0,
           0,
           0,
@@ -1153,18 +553,26 @@
         ]
       },
       {
-        "label": "Task",
-        "backgroundColor": "rgb(201, 203, 207)",
+        "label": "Bug",
+        "backgroundColor": "rgb(75, 192, 192)",
         "data": [
           0,
-          0,
-          2,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
+          1,
+          1
+        ]
+      },
+      {
+        "label": "Bug-SubTask",
+        "backgroundColor": "rgb(54, 162, 235)",
+        "data": [
+          1,
+          1
+        ]
+      },
+      {
+        "label": "Task",
+        "backgroundColor": "rgb(153, 102, 255)",
+        "data": [
           0,
           0,
           0,
@@ -1181,162 +589,113 @@
   },
   "barChartComponentData": {
     "labels": [
-      "New cc",
-      "DMC",
-      "Android Pax",
       "Admin Page",
       "Report",
-      "Android Driver App",
-      "iOS Driver",
-      "iOS Pax",
       "Email",
       "Auto Dispatching",
       "Payment",
-      "Driver signup",
-      "Web Booking",
       "Data Base",
+      "New cc",
+      "iOS Pax",
       "Old CC",
       "Hydra",
-      "Partner App Android",
-      "New CC"
+      "Android Pax"
     ],
     "datasets": [
       {
-        "label": "Open",
+        "label": "Done",
         "backgroundColor": "rgb(255, 99, 132)",
         "data": [
-          25,
+          36,
+          31,
+          1,
+          47,
+          16,
           5,
+          1,
+          1,
+          0,
           6,
-          13,
+          1
+        ]
+      },
+      {
+        "label": "Test",
+        "backgroundColor": "rgb(255, 159, 64)",
+        "data": [
+          1,
+          2,
+          0,
+          5,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "label": "Open",
+        "backgroundColor": "rgb(255, 205, 86)",
+        "data": [
           11,
-          12,
           9,
-          6,
           0,
           11,
-          7,
           4,
           0,
-          0,
+          1,
+          1,
           4,
           5,
+          1
+        ]
+      },
+      {
+        "label": "Closed",
+        "backgroundColor": "rgb(75, 192, 192)",
+        "data": [
+          1,
+          2,
+          0,
+          4,
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "label": "In Review",
+        "backgroundColor": "rgb(54, 162, 235)",
+        "data": [
+          0,
+          0,
+          0,
+          12,
+          0,
+          0,
+          0,
+          0,
+          0,
           0,
           0
         ]
       },
       {
         "label": "In Progress",
-        "backgroundColor": "rgb(255, 159, 64)",
-        "data": [
-          4,
-          1,
-          2,
-          5,
-          2,
-          3,
-          3,
-          2,
-          0,
-          2,
-          3,
-          6,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ]
-      },
-      {
-        "label": "Closed",
-        "backgroundColor": "rgb(255, 205, 86)",
-        "data": [
-          5,
-          1,
-          5,
-          1,
-          2,
-          22,
-          24,
-          2,
-          0,
-          4,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ]
-      },
-      {
-        "label": "Test",
-        "backgroundColor": "rgb(75, 192, 192)",
-        "data": [
-          4,
-          1,
-          3,
-          4,
-          5,
-          4,
-          7,
-          2,
-          0,
-          4,
-          3,
-          29,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0
-        ]
-      },
-      {
-        "label": "Done",
-        "backgroundColor": "rgb(54, 162, 235)",
-        "data": [
-          53,
-          13,
-          85,
-          30,
-          27,
-          259,
-          263,
-          94,
-          1,
-          46,
-          15,
-          0,
-          7,
-          5,
-          0,
-          6,
-          1,
-          0
-        ]
-      },
-      {
-        "label": "In Review",
         "backgroundColor": "rgb(153, 102, 255)",
         "data": [
+          2,
+          1,
+          0,
+          2,
           4,
-          1,
-          2,
-          0,
-          0,
-          6,
-          1,
-          2,
-          0,
-          16,
-          0,
-          0,
           0,
           0,
           0,
@@ -1351,12 +710,6 @@
         "data": [
           0,
           0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
           1,
           0,
           0,
@@ -1365,8 +718,7 @@
           0,
           0,
           0,
-          0,
-          1
+          0
         ]
       },
       {
@@ -1374,17 +726,10 @@
         "backgroundColor": "rgb(249, 149, 198)",
         "data": [
           0,
-          0,
-          0,
-          0,
-          1,
           1,
           0,
           0,
-          0,
-          0,
           1,
-          0,
           0,
           0,
           0,
