@@ -261,7 +261,7 @@ app.get('/sample', authMiddleware, function(req, res){
                         labels: components,
                         datasets: datasets
                     }
-
+                    finish.fouls = _.sortBy(finish.fouls, [function(o) { return o.user; }]);
                     jira_utils.setResults(jql, finish);
                     res.send(finish);
                 }
