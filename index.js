@@ -116,7 +116,8 @@ app.get('/sample', authMiddleware, function(req, res){
     } 
     var startAt = 0;
     var total = 100;
-    var jql= "project in (SL, KAN) AND updated >= -2w";
+    // var jql= "project in (SL, KAN) AND updated >= -2w";
+    var jql= "Sprint in (291,292,293)";
     jira_utils.getResults(jql, function(err, data){
         if (data) {
             data.data = JSON.parse(data.data);
@@ -167,7 +168,7 @@ app.get('/sample', authMiddleware, function(req, res){
                                             }
                                             finish.components[component.name][issuestatus] = 1;
                                         }
-                                    })
+                                    });
                                 }
                                 if (issuetype === "Story") {
                                     finish.point += _.get(issue, "fields.customfield_10004", 0);
@@ -180,7 +181,7 @@ app.get('/sample', authMiddleware, function(req, res){
                                 finish.issues.total++;
                                 finish.issues[issuetype] = finish.issues[issuetype] ? finish.issues[issuetype] + 1 : 1;
                                 //get log work info
-                                jira_utils.getWorklog(issue.key, req.headers.authorization, function(err, rs){
+                                jira_utils.getWorklog(issue.updated, issue.key, req.headers.authorization, function(err, rs){
                                     if (rs && rs.length) {
                                         rs.forEach(function(worklog){
                                             var dateCreated = new moment(worklog.created).format('YYYY-MM-DD');
@@ -272,7 +273,7 @@ app.get('/sample', authMiddleware, function(req, res){
 app.get('/', function(req, res){
     res.sendFile(__dirname + '/public/full.html');
 })
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 http.listen(port, function () {
     console.log('App is running on ' + port);
 }); 
