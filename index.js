@@ -115,160 +115,161 @@ app.get('/sample', authMiddleware, function(req, res){
         }
     } 
     var startAt = 0;
-    var total = 100;
     // var jql= "project in (SL, KAN) AND updated >= -2w";
     var jql= "Sprint in (291,292,293)";
-    jira_utils.getResults(jql, function(err, data){
-        if (data) {
-            data.data = JSON.parse(data.data);
-            res.send(data.data);
-        } else {
-            async.whilst(
-                function () { return startAt < total; },
-                function (callback) {
-                    request({
-                        url: jiraDomain+'/rest/api/2/search?maxResults=100&startAt='+startAt+'&jql=' + jql,
-                        timeout: 10000,
-                        json: true,
-                        headers: {
-                            "Authorization": req.headers.authorization
-                        }
-                    }, function(error, response, result){
-                        if (result && result.total) {                                           
-                            total = result.total;
-                            startAt += 100;
-                            async.forEachLimit(result.issues, 10, function(issue, cback){ 
-                                var issuetype = _.get(issue, "fields.issuetype.name", "unknown");
-                                var issuestatus = _.get(issue, "fields.status.name", "unknown");
-                                finish.issuetypes = _.uniq(finish.issuetypes.push(issuetype));
-                                var components = _.get(issue, "fields.components", []);
-                                if (issue.fields.subtasks.length == 0) {
-                                    var timespent = _.get(issue, "fields.timespent", 0);
-                                    if (!timespent && _.indexOf(["Story"], issuetype) == -1 && _.indexOf(["Open", "Closed", "In Progress"], issuestatus) == -1) {
-                                        if(issue.fields.assignee) {
-                                            finish.fouls.push({
-                                                issueLink: jiraDomain + '/browse/' + issue.key,
-                                                user: issue.fields.assignee.name,
-                                                avatar: issue.fields.assignee.avatarUrls["24x24"],
-                                                msg: "No logwork"
-                                            })
-                                        }                                        
-                                    }
-                                    components.forEach(function(component){
-                                        if (finish.components[component.name]) {
-                                            finish.components[component.name].total++;
-                                            if (finish.components[component.name][issuestatus]) {
-                                                finish.components[component.name][issuestatus]++;
-                                            } else {
-                                                finish.components[component.name][issuestatus] = 1;
-                                            }
-                                        } else {
-                                            finish.components[component.name] = {
-                                                total: 1
-                                            }
-                                            finish.components[component.name][issuestatus] = 1;
-                                        }
-                                    });
-                                }
-                                if (issuetype === "Story") {
-                                    finish.point += _.get(issue, "fields.customfield_10004", 0);
-                                }
-                                if(finish.issues.status[issuestatus]) {
-                                    finish.issues.status[issuestatus]++;
-                                } else {
-                                    finish.issues.status[issuestatus] = 1;
-                                }
-                                finish.issues.total++;
-                                finish.issues[issuetype] = finish.issues[issuetype] ? finish.issues[issuetype] + 1 : 1;
-                                //get log work info
-                                jira_utils.getWorklog(issue.updated, issue.key, req.headers.authorization, function(err, rs){
-                                    if (rs && rs.length) {
-                                        rs.forEach(function(worklog){
-                                            var dateCreated = new moment(worklog.created).format('YYYY-MM-DD');
-                                            finish.users[worklog.name] = finish.users[worklog.name] || {total: 0};
-                                            finish.users[worklog.name].total += worklog.timeSpentSeconds;
-                                            finish.users[worklog.name][issuetype] = finish.users[worklog.name][issuetype] || 0;
-                                            finish.users[worklog.name][issuetype] += worklog.timeSpentSeconds;
-                                            
-                                            //barchart         
-                                            finish.barChartLogworkData.labels.push(worklog.name)
-                                            var users = _.uniq(finish.barChartLogworkData.labels);                                    
-                                            finish.barChartLogworkData.labels = users;
-                                            var labelIndex = _.indexOf(users, worklog.name);
-                                            var datasetIndex = _.findIndex(finish.barChartLogworkData.datasets, function(o) { return o.label == issuetype; });
-                                            if (datasetIndex == -1) {
-                                                finish.barChartLogworkData.datasets.push({
-                                                    label: issuetype,
-                                                    backgroundColor: colors.issuetypes[finish.barChartLogworkData.datasets.length].code,
-                                                    data: []
-                                                });  
-                                                datasetIndex =  _.findIndex(finish.barChartLogworkData.datasets, function(o) { return o.label == issuetype; });                                    
-                                            }
-                                            if(!finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex]) {
-                                                finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex] = 0;
-                                            }
-                                            finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex] += worklog.timeSpentSeconds;
-        
-                                            finish.dates[dateCreated] = finish.dates[dateCreated] || {};
-                                            finish.dates[dateCreated][worklog.name] = finish.dates[dateCreated][worklog.name] || {total: 0};
-                                            finish.dates[dateCreated][worklog.name].total += worklog.timeSpentSeconds;
-                                            finish.dates[dateCreated][worklog.name][issuetype] = finish.dates[dateCreated][worklog.name][issuetype] || 0;
-                                            finish.dates[dateCreated][worklog.name][issuetype] += worklog.timeSpentSeconds;
-                                        })
-                                    }
-                                    console.log(finish.issues.total +"/"+ result.total)
-                                    cback();
-                                })
-                            }, function(){
-                                callback();
-                            })
-                        } else {
-                            callback(error || response.statusCode);
-                        }
-                    })
-                },
-                function (err, n) {
-                    if (err) {
-                        console.log(err);
-                    }
-                    console.log('DONE');
-                    //remove null value in datasets.data
-                    finish.barChartLogworkData.datasets = _.map(finish.barChartLogworkData.datasets, function(dataset) { 
-                        return {
-                            label: dataset.label,
-                            backgroundColor: dataset.backgroundColor,
-                            data: _.map(dataset.data, function(dts) { 
-                                if (!dts) {
-                                    return 0;
-                                } else {
-                                    return (dts/60/60);
-                                }                        
-                            })
-                        }                
-                    });
-                    var components = _.keys(finish.components);
-                    var issuestatus = _.keys(finish.issues.status);
-                    var datasets = [];  
-                    for(var i in issuestatus) {
-                        datasets.push({
-                            "label": issuestatus[i],
-                            "backgroundColor": colors.issuestatus[i].code || "rgb(255, 99, 132)",
-                            "data": _.map(components, function(component){
-                                return finish.components[component][issuestatus[i]] || 0;
-                            })
-                        });
-                    }          
-                    finish.barChartComponentData = {
-                        labels: components,
-                        datasets: datasets
-                    }
-                    finish.fouls = _.sortBy(finish.fouls, [function(o) { return o.user; }]);
-                    jira_utils.setResults(jql, finish);
-                    res.send(finish);
+    var totalResult = [];
+    var total = 0;
+    var count = 0;
+    jira_utils.searchJQL(startAt, jql, req.headers.authorization, function(err, result){
+        if (result && result.total) {   
+            totalResult = _.union(totalResult, result.issues);
+            total = result.total;
+            startAt += 100;
+            var tmp = [];
+            if(total>100){                                
+                while(startAt <= total){
+                    tmp.push(startAt);
+                    startAt += 100;
                 }
-            );            
+            }
+            if (tmp.length) {
+                async.forEachLimit(tmp, 5, function(startAt, cback){
+                    jira_utils.searchJQL(startAt, jql, req.headers.authorization, function(err, result){
+                        if (result && result.total) {   
+                            totalResult = _.union(totalResult, result.issues);
+                        }
+                        cback();
+                    })
+                }, function(){
+                    finishSearch();
+                })
+            }
+        } else {
+            finishSearch()
         }
-    });    
+    })
+    function finishSearch(){
+        async.forEachLimit(totalResult, 10, function(issue, cback){
+            var issuetype = _.get(issue, "fields.issuetype.name", "unknown");
+            var issuestatus = _.get(issue, "fields.status.name", "unknown");
+            finish.issuetypes = _.uniq(finish.issuetypes.push(issuetype));
+            var components = _.get(issue, "fields.components", []);
+            if (issue.fields.subtasks.length == 0) {
+                var timespent = _.get(issue, "fields.timespent", 0);
+                if (!timespent && _.indexOf(["Story"], issuetype) == -1 && _.indexOf(["Open", "Closed", "In Progress"], issuestatus) == -1) {
+                    if(issue.fields.assignee) {
+                        finish.fouls.push({
+                            issueLink: jiraDomain + '/browse/' + issue.key,
+                            summary:  issue.fields.summary,
+                            key:  issue.key,
+                            user: issue.fields.assignee.name,
+                            avatar: issue.fields.assignee.avatarUrls["24x24"],
+                            msg: "No logwork"
+                        })
+                    }                                        
+                }
+                components.forEach(function(component){
+                    if (finish.components[component.name]) {
+                        finish.components[component.name].total++;
+                        if (finish.components[component.name][issuestatus]) {
+                            finish.components[component.name][issuestatus]++;
+                        } else {
+                            finish.components[component.name][issuestatus] = 1;
+                        }
+                    } else {
+                        finish.components[component.name] = {
+                            total: 1
+                        }
+                        finish.components[component.name][issuestatus] = 1;
+                    }
+                });
+            }
+            if (issuetype === "Story") {
+                finish.point += _.get(issue, "fields.customfield_10004", 0);
+            }
+            if(finish.issues.status[issuestatus]) {
+                finish.issues.status[issuestatus]++;
+            } else {
+                finish.issues.status[issuestatus] = 1;
+            }
+            finish.issues.total++;
+            finish.issues[issuetype] = finish.issues[issuetype] ? finish.issues[issuetype] + 1 : 1;
+            //get log work info
+            jira_utils.getWorklog(issue.fields.updated, issue.key, req.headers.authorization, function(err, rs){
+                count++;
+                if (rs && rs.length) {
+                    rs.forEach(function(worklog){
+                        var dateCreated = new moment(worklog.created).format('YYYY-MM-DD');
+                        finish.users[worklog.name] = finish.users[worklog.name] || {total: 0};
+                        finish.users[worklog.name].total += worklog.timeSpentSeconds;
+                        finish.users[worklog.name][issuetype] = finish.users[worklog.name][issuetype] || 0;
+                        finish.users[worklog.name][issuetype] += worklog.timeSpentSeconds;
+                        
+                        //barchart         
+                        finish.barChartLogworkData.labels.push(worklog.name)
+                        var users = _.uniq(finish.barChartLogworkData.labels);                                    
+                        finish.barChartLogworkData.labels = users;
+                        var labelIndex = _.indexOf(users, worklog.name);
+                        var datasetIndex = _.findIndex(finish.barChartLogworkData.datasets, function(o) { return o.label == issuetype; });
+                        if (datasetIndex == -1) {
+                            finish.barChartLogworkData.datasets.push({
+                                label: issuetype,
+                                backgroundColor: colors.issuetypes[finish.barChartLogworkData.datasets.length].code,
+                                data: []
+                            });  
+                            datasetIndex =  _.findIndex(finish.barChartLogworkData.datasets, function(o) { return o.label == issuetype; });                                    
+                        }
+                        if(!finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex]) {
+                            finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex] = 0;
+                        }
+                        finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex] += worklog.timeSpentSeconds;
+
+                        finish.dates[dateCreated] = finish.dates[dateCreated] || {};
+                        finish.dates[dateCreated][worklog.name] = finish.dates[dateCreated][worklog.name] || {total: 0};
+                        finish.dates[dateCreated][worklog.name].total += worklog.timeSpentSeconds;
+                        finish.dates[dateCreated][worklog.name][issuetype] = finish.dates[dateCreated][worklog.name][issuetype] || 0;
+                        finish.dates[dateCreated][worklog.name][issuetype] += worklog.timeSpentSeconds;
+                    })
+                }
+                console.log(issue.key + ' ' + count +"/"+ total)
+                cback();
+            })
+        }, function(){
+            console.log('DONE');
+            //remove null value in datasets.data
+            finish.barChartLogworkData.datasets = _.map(finish.barChartLogworkData.datasets, function(dataset) { 
+                return {
+                    label: dataset.label,
+                    backgroundColor: dataset.backgroundColor,
+                    data: _.map(dataset.data, function(dts) { 
+                        if (!dts) {
+                            return 0;
+                        } else {
+                            return (dts/60/60);
+                        }                        
+                    })
+                }                
+            });
+            var components = _.keys(finish.components);
+            var issuestatus = _.keys(finish.issues.status);
+            var datasets = [];  
+            for(var i in issuestatus) {
+                datasets.push({
+                    "label": issuestatus[i],
+                    "backgroundColor": colors.issuestatus[i].code || "rgb(255, 99, 132)",
+                    "data": _.map(components, function(component){
+                        return finish.components[component][issuestatus[i]] || 0;
+                    })
+                });
+            }          
+            finish.barChartComponentData = {
+                labels: components,
+                datasets: datasets
+            }
+            finish.fouls = _.sortBy(finish.fouls, [function(o) { return o.user; }]);
+            res.send(finish);
+        })
+    }
 });
 app.get('/', function(req, res){
     res.sendFile(__dirname + '/public/full.html');

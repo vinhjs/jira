@@ -1,27 +1,37 @@
 var request = require('request');
 var _ = require('lodash');
-var MongoClient = require('mongodb').MongoClient;
-var url      = 'mongodb://192.168.2.85:27017';
-var mongodb = null;
-function connectMongo(){
-    MongoClient.connect(url, function(err, client) {
-        if (err) {
-            console.log(err);
-        } 
-        if (client) {
-            console.log("MongoDb connected");
-        }
-        mongodb = client.db('testCopy');
-    });
-}
+var moment = require("moment");
 
-connectMongo();
+const low = require('lowdb')
+const FileSync = require('lowdb/adapters/FileSync')
+
+const adapter = new FileSync('db.json')
+const db = low(adapter);
+
+var jiraDomain = 'https://issues.qup.vn';
+
+var searchJQL = function(startAt, jql, auth, cb){
+    var url = jiraDomain+'/rest/api/2/search?maxResults=100&startAt='+startAt+'&jql=' + jql;
+    var date = new Date();
+    request({
+        url: url,
+        timeout: 30000,
+        json: true,
+        headers: {
+            "Authorization": auth
+        }
+    }, function(error, response, result){
+        console.log(url + " : " + (new Date() - date));
+        cb(error, result);
+    })
+}
 var getWorklog = function(updated, key, auth, cb){
     var url = 'https://issues.qup.vn/rest/api/2/issue/'+key+'/worklog';
-    getCacheMongo(key, function(err, data) {
+    getCacheDb(key, updated, function(err, data) {
         if (!err && data) {
             cb(err, data);
         } else {
+            var date = new Date();
             request({
                 url: url,
                 timeout: 10000,
@@ -30,6 +40,7 @@ var getWorklog = function(updated, key, auth, cb){
                     "Authorization": auth
                 }
             }, function(error, response, result){
+                console.log(url + " : " + (new Date() - date));
                 if (result && result.total) {
                     function filter(el){
                         return {
@@ -39,75 +50,40 @@ var getWorklog = function(updated, key, auth, cb){
                         }
                     }
                     var rs = _.map(result.worklogs, filter);
-                    setCacheMongo(key, rs, function(err, ok){})
+                    setCacheDb(key, rs, updated, function(err, ok){})
                     cb(null, rs);
                 } else {
-                    setCacheMongo(key, [], function(err, ok){})
+                    setCacheDb(key, [], updated, function(err, ok){})
                     cb("notfound", [])
                 }
             });
         }
     });   
 };
-var setResults = function(sql, data){
-    if (mongodb) {
-        var bindData = {
-            time: new Date(),
-            sql: sql,
-            data: JSON.stringify(data)
-        };
-        var JiraResults = mongodb.collection('JiraResults');
-        JiraResults.insertOne(bindData);
+function getCacheDb(key, updated, cb){
+    const log = db.get('logwork.'+key).value();
+    if (log && log.data) {
+        if (log.updated == updated) {
+            cb(null, log.data);
+        } else {
+            cb(null, null);
+        }
     } else {
-        console.log("mongodb error", error);
-    }
-}; 
-var getResults = function(sql, cb){
-    if (mongodb) {
-        var JiraResults = mongodb.collection('JiraResults');
-        JiraResults.findOne({
-            sql: sql
-        }, function(err, data){
-            if (!err && data) {
-                cb(null, data);
-            } else {
-                cb("mongodb error", null);
-            }
-        });
-    } else {
-        cb("mongodb error", null);
-    }
-}; 
-function getCacheMongo(key, cb){
-    if (mongodb) {
-        var JiraLogworks = mongodb.collection('JiraLogworks');
-        JiraLogworks.findOne({
-            key: key
-        }, function(err, data){
-            if (!err && data && data.data) {
-                cb(null, data.data);
-            } else {
-                cb("mongodb error", null);
-            }
-        });
-    } else {
-        cb("mongodb error", null);
+        cb(null, null);
     }
 }
-function setCacheMongo(key, data, cb){
-    if (mongodb) {
-        var JiraLogworks = mongodb.collection('JiraLogworks');
-        JiraLogworks.insertOne({
-            time: new Date(),
-            key: key,
-            data: data
-        }, cb);
+function setCacheDb(key, data, updated, cb){
+    if (db) {
+        db.set('logwork.' + key, {key: key, data: data, time: new Date().toISOString(), updated: updated})
+        .write()
+        // .then(function(logwork){
+        cb(null, true)
+        // })
     } else {
-        cb("mongodb error", null);
+        cb("db error", null);
     }
 }
 module.exports = {
     getWorklog,
-    setResults,
-    getResults
+    searchJQL
 }
