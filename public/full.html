@@ -23,11 +23,12 @@
 
 <body>
     <div style="width: 100%">
-        <select>
-            <option value="1">4.6.28 All</option>
-            <option value="2">4.6.28 App</option>
-            <option value="3">4.6.28 Web</option>
-            <option value="4">4.6.28 Server</option>
+        <select id="selectjql">
+            <option value="project in (SL, KAN) AND updated >= -1w">Updated within the last 1 week (Scrum, Kanban)</option>
+            <option value="Sprint in (291,292,293)">4.6.28 All</option>
+            <option value="Sprint in (291)">4.6.28 App</option>
+            <option value="Sprint in (292)">4.6.28 Web</option>
+            <option value="Sprint in (293)">4.6.28 Server</option>
         </select> 
         <button id="process">Process</button>
     </div>
@@ -51,211 +52,217 @@
         </table>
     </div>
 	<script>
-        // DEPRECATED
-        NProgress.start();
-		var color = Chart.helpers.color;
-		
-		window.onload = function() {
-			var ctx1 = document.getElementById('canvas1').getContext('2d');
+        // DEPRECATED       
+        window.onload = function() {
             var ctx2 = document.getElementById('canvas2').getContext('2d');
-            var ctx3 = document.getElementById('canvas3').getContext('2d');
-            $.get('/sample', function (record) {
-                console.log(record);
-                var barChartLogworkData = record.barChartLogworkData;
-                var barChartComponentData = record.barChartComponentData;
-                var config1 = {
-                    type: 'bar',
-                    data: barChartLogworkData,
-                    options: {	
-                        title: {
-                            display: true,
-                            text: 'LOGWORK - SPENT TIME'
-                        },
-                        tooltips: {
-                            mode: 'index',
-                            intersect: false,
-                            callbacks: {
-                                // Use the footer callback to display the sum of the items showing in the tooltip
-                                footer: function(tooltipItems, data) {
-                                    var sum = 0;
+            var ctx3 = document.getElementById('canvas3').getContext('2d'); 
+            var ctx1 = document.getElementById('canvas1').getContext('2d'); 
+            var color = Chart.helpers.color;
+            var timeFormat = 'MM/DD/YYYY HH:mm';
+            var config1 = {
+                type: 'bar',
+                data: {},
+                options: {	
+                    title: {
+                        display: true,
+                        text: 'LOGWORK - SPENT TIME'
+                    },
+                    tooltips: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            // Use the footer callback to display the sum of the items showing in the tooltip
+                            footer: function(tooltipItems, data) {
+                                var sum = 0;
 
-                                    tooltipItems.forEach(function(tooltipItem) {
-                                        sum += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
-                                    });
-                                    return 'Sum: ' + sum;
-                                }
+                                tooltipItems.forEach(function(tooltipItem) {
+                                    sum += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+                                });
+                                return 'Sum: ' + sum;
+                            }
+                        },
+                        footerFontStyle: 'normal'
+                    },
+                    responsive: true,
+                    scales: {
+                        xAxes: [{
+                            stacked: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Members'
+                            }
+                        }],
+                        yAxes: [{
+                            stacked: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Hours'
+                            }
+                        }]
+                    },
+                    
+                }
+            };
+            var config2 = {
+                type: 'line',
+                data: {},
+                options: {
+                    title: {
+                        display: true,
+                        text: 'LOGWORK ACTIVITIES'
+                    },
+                    zoomEnabled: true,
+                    tooltips: {
+                        mode: 'index',
+                        callbacks: {
+                            // Use the footer callback to display the sum of the items showing in the tooltip
+                            footer: function(tooltipItems, data) {
+                                var sum = 0;
+
+                                tooltipItems.forEach(function(tooltipItem) {
+                                    sum += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].y;
+                                });
+                                return 'Sum: ' + sum;
                             },
-                            footerFontStyle: 'normal'
                         },
-                        responsive: true,
-                        scales: {
-                            xAxes: [{
-                                stacked: true,
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: 'Members'
-                                }
-                            }],
-                            yAxes: [{
-                                stacked: true,
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: 'Hours'
-                                }
-                            }]
+                        footerFontStyle: 'normal'
+                    },
+                    scales: {
+                        xAxes: [{
+                            type: 'time',
+                            time: {
+                                format: timeFormat,
+                                // round: 'day'
+                                tooltipFormat: 'll HH:mm'
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Date'
+                            }
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'hours'
+                            }
+                        }]
+                    },
+                }
+            };
+            var config3 = {
+                type: 'bar',
+                data: {},
+                options: {	
+                    title: {
+                        display: true,
+                        text: 'COMPONENTS - STATUS'
+                    },
+                    tooltips: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            // Use the footer callback to display the sum of the items showing in the tooltip
+                            footer: function(tooltipItems, data) {
+                                var sum = 0;
+
+                                tooltipItems.forEach(function(tooltipItem) {
+                                    sum += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+                                });
+                                return 'Sum: ' + sum;
+                            }
                         },
+                        footerFontStyle: 'normal'
+                    },
+                    responsive: true,
+                    scales: {
+                        xAxes: [{
+                            stacked: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Components'
+                            }
+                        }],
+                        yAxes: [{
+                            stacked: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Hours'
+                            }
+                        }]
+                    },
+                    
+                }
+            }
+            var chart1 = new Chart(ctx1, config1);    
+            var chart2 = new Chart(ctx2, config2);    
+            var chart3 = new Chart(ctx3, config3);
+            document.getElementById('process').addEventListener('click', function() {
+                NProgress.start();
+                $.each($("#selectjql option:selected"), function(){
+                    var jql = $(this).val();
+                    $.post('/sample', {jql: jql}, function (record) {
+                        chart1.data = record.barChartLogworkData;
+                        chart1.update();  
+                        chart3.data = record.barChartComponentData;
+                        chart3.update();
+                        ///
                         
-                    }
-                }
-                new Chart(ctx1, config1);
-
-                ///
-                var timeFormat = 'MM/DD/YYYY HH:mm';
-                var lineChartData = {
-                    labels: [],
-                    datasets: []
-                };
-                _.map(_.keys(record.dates).sort(), function(time){
-                    lineChartData.labels.push(moment(time).toDate());        
-                })
-                let users = _.keys(record.users);
-                _.map(users, function(user){
-                    console.log(user);
-                    console.log(window.jira_color.users[user])
-                    var dataset = {
-                        label: user,
-                        backgroundColor: window.jira_color.users[user] || 'rbg(0,0,0)',
-                        borderColor: window.jira_color.users[user] || 'rbg(0,0,0)',
-                        fill: false,
-                        data: []
-                    };        
-                    _.map(_.keys(record.dates).sort(), function(time){
-                        if (record.dates[time][user]){
-                            dataset.data.push({
-                                x: moment(time).format(timeFormat),
-                                y: record.dates[time][user].total/60/60
+                        var lineChartData = {
+                            labels: [],
+                            datasets: []
+                        };
+                        _.map(_.keys(record.dates).sort(), function(time){
+                            lineChartData.labels.push(moment(time).toDate());        
+                        })
+                        let users = _.keys(record.users);
+                        _.map(users, function(user){
+                            console.log(user);
+                            console.log(window.jira_color.users[user])
+                            var dataset = {
+                                label: user,
+                                backgroundColor: window.jira_color.users[user] || 'rbg(0,0,0)',
+                                borderColor: window.jira_color.users[user] || 'rbg(0,0,0)',
+                                fill: false,
+                                data: []
+                            };        
+                            _.map(_.keys(record.dates).sort(), function(time){
+                                if (record.dates[time][user]){
+                                    dataset.data.push({
+                                        x: moment(time).format(timeFormat),
+                                        y: record.dates[time][user].total/60/60
+                                    })
+                                } else {
+                                    dataset.data.push({
+                                        x: moment(time).format(timeFormat),
+                                        y: 0
+                                    })
+                                }       
                             })
-                        } else {
-                            dataset.data.push({
-                                x: moment(time).format(timeFormat),
-                                y: 0
-                            })
-                        }       
-                    })
-                    lineChartData.datasets.push(dataset);
-                })              
-                console.log(JSON.stringify(lineChartData))  
-                var config2 = {
-                    type: 'line',
-                    data: lineChartData,
-                    options: {
-                        title: {
-                            display: true,
-                            text: 'LOGWORK ACTIVITIES'
-                        },
-                        zoomEnabled: true,
-                        tooltips: {
-                            mode: 'index',
-                            callbacks: {
-                                // Use the footer callback to display the sum of the items showing in the tooltip
-                                footer: function(tooltipItems, data) {
-                                    var sum = 0;
+                            lineChartData.datasets.push(dataset);
+                        })              
+                        chart2.data = lineChartData;
+                        chart2.update(); 
 
-                                    tooltipItems.forEach(function(tooltipItem) {
-                                        sum += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].y;
-                                    });
-                                    return 'Sum: ' + sum;
-                                },
-                            },
-                            footerFontStyle: 'normal'
-                        },
-                        scales: {
-                            xAxes: [{
-                                type: 'time',
-                                time: {
-                                    format: timeFormat,
-                                    // round: 'day'
-                                    tooltipFormat: 'll HH:mm'
-                                },
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: 'Date'
-                                }
-                            }],
-                            yAxes: [{
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: 'hours'
-                                }
-                            }]
-                        },
-                    }
-                };
-                window.myLine = new Chart(ctx2, config2);
-
-                //
-                var config3 = {
-                    type: 'bar',
-                    data: barChartComponentData,
-                    options: {	
-                        title: {
-                            display: true,
-                            text: 'COMPONENTS - STATUS'
-                        },
-                        tooltips: {
-                            mode: 'index',
-                            intersect: false,
-                            callbacks: {
-                                // Use the footer callback to display the sum of the items showing in the tooltip
-                                footer: function(tooltipItems, data) {
-                                    var sum = 0;
-
-                                    tooltipItems.forEach(function(tooltipItem) {
-                                        sum += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
-                                    });
-                                    return 'Sum: ' + sum;
-                                }
-                            },
-                            footerFontStyle: 'normal'
-                        },
-                        responsive: true,
-                        scales: {
-                            xAxes: [{
-                                stacked: true,
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: 'Components'
-                                }
-                            }],
-                            yAxes: [{
-                                stacked: true,
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: 'Hours'
-                                }
-                            }]
-                        },
-                        
-                    }
-                }
-                new Chart(ctx3, config3);
-                var table = document.getElementById("noLogwork");
-                for (var i in record.fouls){
-                    var row = table.insertRow(0);
-                    var cell1 = row.insertCell(0);
-                    var cell2 = row.insertCell(1);
-                    var cell3 = row.insertCell(2);
-                    var cell4 = row.insertCell(3);
-                    cell1.innerHTML = parseInt(i) + 1;
-                    cell2.innerHTML = record.fouls[i].user;
-                    cell3.innerHTML = '<a target="_blank" rel="noopener noreferrer" href="'+record.fouls[i].issueLink+'">'+record.fouls[i].key+' - ' + _.truncate(record.fouls[i].summary, {"length": 100, "omission": "..."}) + '</a>';
-                    cell4.innerHTML = record.fouls[i].msg;
-                }
-                
-                NProgress.done();
-            })
-			
+                        var table = document.getElementById("noLogwork");
+                        for (var i in record.fouls){
+                            var row = table.insertRow(0);
+                            var cell1 = row.insertCell(0);
+                            var cell2 = row.insertCell(1);
+                            var cell3 = row.insertCell(2);
+                            var cell4 = row.insertCell(3);
+                            cell1.innerHTML = parseInt(i) + 1;
+                            cell2.innerHTML = record.fouls[i].user;
+                            cell3.innerHTML = '<a target="_blank" rel="noopener noreferrer" href="'+record.fouls[i].issueLink+'">'+record.fouls[i].key+' - ' + _.truncate(record.fouls[i].summary, {"length": 100, "omission": "..."}) + '</a>';
+                            cell4.innerHTML = record.fouls[i].msg;
+                        }
+                    
+                        NProgress.done();          
+                    })               
+                });
+            }); 
 		};
+        
+		
 	</script>
 </body>
 

@@ -93,7 +93,7 @@ app.get('/database', function(req, res){
     });
 
 })
-app.get('/sample', authMiddleware, function(req, res){
+app.post('/sample', authMiddleware, function(req, res){
     var finish = {
         issuetypes: [],
         point: 0,
@@ -116,7 +116,7 @@ app.get('/sample', authMiddleware, function(req, res){
     } 
     var startAt = 0;
     // var jql= "project in (SL, KAN) AND updated >= -2w";
-    var jql= "Sprint in (291,292,293)";
+    var jql= req.body.jql || "Sprint in (291,292,293)";
     var totalResult = [];
     var total = 0;
     var count = 0;
