@@ -105,6 +105,9 @@ app.post('/sample', authMiddleware, function(req, res){
         dates: {},
         components: {},
         fouls: [],
+        mydata: {
+            logwork: []
+        },
         barChartLogworkData: {
             labels: [],
             datasets: []
@@ -120,7 +123,9 @@ app.post('/sample', authMiddleware, function(req, res){
     var totalResult = [];
     var total = 0;
     var count = 0;
-    jira_utils.searchJQL(startAt, jql, req.headers.authorization, function(err, result){
+    jira_utils.searchJQL(startAt, jql, req.headers.authorization, true, function(err, rs){
+        var result = rs.search;
+        finish.session = rs.session;
         if (result && result.total) {   
             totalResult = _.union(totalResult, result.issues);
             total = result.total;
@@ -134,7 +139,8 @@ app.post('/sample', authMiddleware, function(req, res){
             }
             if (tmp.length) {
                 async.forEachLimit(tmp, 5, function(startAt, cback){
-                    jira_utils.searchJQL(startAt, jql, req.headers.authorization, function(err, result){
+                    jira_utils.searchJQL(startAt, jql, req.headers.authorization, false, function(err, rs){
+                        var result = rs.search;
                         if (result && result.total) {   
                             totalResult = _.union(totalResult, result.issues);
                         }
@@ -199,6 +205,13 @@ app.post('/sample', authMiddleware, function(req, res){
                 count++;
                 if (rs && rs.length) {
                     rs.forEach(function(worklog){
+                        if (worklog.name == finish.session.name) {
+                            finish.mydata.logwork.push({
+                                key: issue.key,
+                                time: worklog.created,
+                                timespent: (worklog.timeSpentSeconds/60) + 'minutes'
+                            });
+                        }
                         var dateCreated = new moment(worklog.created).format('YYYY-MM-DD');
                         finish.users[worklog.name] = finish.users[worklog.name] || {total: 0};
                         finish.users[worklog.name].total += worklog.timeSpentSeconds;

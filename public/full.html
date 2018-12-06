@@ -31,13 +31,14 @@
             <option value="Sprint in (293)">4.6.28 Server</option>
         </select> 
         <button id="process">Process</button>
+        
     </div>
 	<div style="width: 100%">
 		<canvas id="canvas1"></canvas>
     </div>
     <div style="width: 100%">
 		<canvas id="canvas2"></canvas>
-    </div>
+    <div><button id="myreport2" hidden=true>My report</button></div>
     <div style="width: 100%">
 		<canvas id="canvas3"></canvas>
     </div>
@@ -59,6 +60,8 @@
             var ctx1 = document.getElementById('canvas1').getContext('2d'); 
             var color = Chart.helpers.color;
             var timeFormat = 'MM/DD/YYYY HH:mm';
+            var session = {};
+            var myreport2 = false;
             var config1 = {
                 type: 'bar',
                 data: {},
@@ -196,11 +199,27 @@
             var chart1 = new Chart(ctx1, config1);    
             var chart2 = new Chart(ctx2, config2);    
             var chart3 = new Chart(ctx3, config3);
+            document.getElementById('myreport2').addEventListener('click', function() {
+                for(var i in chart2.config.data.datasets){
+                    if(chart2.config.data.datasets[i].label !== session.name){
+                        chart2.getDatasetMeta(i).hidden= myreport2 ? null : true ;
+                    } else {
+                        chart2.getDatasetMeta(i).hidden= null;
+                    }                    
+                }
+                myreport2 = !myreport2;
+                chart2.update(); 
+            })
             document.getElementById('process').addEventListener('click', function() {
+                document.getElementById('myreport2').hidden = true;
                 NProgress.start();
                 $.each($("#selectjql option:selected"), function(){
                     var jql = $(this).val();
                     $.post('/sample', {jql: jql}, function (record) {
+                        console.log(record);
+                        session = record.session;
+                        document.getElementById('myreport2').innerText = record.session.name;
+                        document.getElementById('myreport2').hidden = false;
                         chart1.data = record.barChartLogworkData;
                         chart1.update();  
                         chart3.data = record.barChartComponentData;
@@ -216,8 +235,6 @@
                         })
                         let users = _.keys(record.users);
                         _.map(users, function(user){
-                            console.log(user);
-                            console.log(window.jira_color.users[user])
                             var dataset = {
                                 label: user,
                                 backgroundColor: window.jira_color.users[user] || 'rbg(0,0,0)',

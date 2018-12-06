@@ -1,5 +1,6 @@
 var request = require('request');
 var _ = require('lodash');
+var async = require('async');
 var moment = require("moment");
 
 const low = require('lowdb')
@@ -10,20 +11,42 @@ const db = low(adapter);
 
 var jiraDomain = 'https://issues.qup.vn';
 
-var searchJQL = function(startAt, jql, auth, cb){
+var searchJQL = function(startAt, jql, auth, session, cb){
     var url = jiraDomain+'/rest/api/2/search?maxResults=100&startAt='+startAt+'&jql=' + jql;
     var date = new Date();
-    request({
-        url: url,
-        timeout: 30000,
-        json: true,
-        headers: {
-            "Authorization": auth
+    async.parallel({
+        search: function(cback){
+            request({
+                url: url,
+                timeout: 30000,
+                json: true,
+                headers: {
+                    "Authorization": auth
+                }
+            }, function(error, response, result){
+                console.log(url + " : " + (new Date() - date));
+                cback(error, result);
+            })
+        },
+        session: function(cback){
+            if (session) {
+                request({
+                    url: jiraDomain + '/rest/auth/1/session',
+                    timeout: 30000,
+                    json: true,
+                    headers: {
+                        "Authorization": auth
+                    }
+                }, function(error, response, result){
+                    cback(error, result);
+                })
+            } else {
+                cback(null, {})
+            }
         }
-    }, function(error, response, result){
-        console.log(url + " : " + (new Date() - date));
-        cb(error, result);
-    })
+    }, function(err, rs){
+        cb(err, rs);
+    })   
 }
 var getWorklog = function(updated, key, auth, cb){
     var url = 'https://issues.qup.vn/rest/api/2/issue/'+key+'/worklog';
