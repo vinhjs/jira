@@ -38,8 +38,12 @@
     
     <div style="width: 100%">
 		<canvas id="canvas2"></canvas>
-    <div><button id="myreport2" hidden=true>My report</button></div>
-    <a target="_blank" rel="noopener noreferrer" id="myworklog"></a>
+    <div><button id="myreport2" hidden=true>My report</button><a target="_blank" rel="noopener noreferrer" id="myworklog"></a></div>
+    
+    <div style="width: 100%">
+        <table id="tablealllogwork" style="width: 100%" border="1">
+        </table>
+    </div>
 	<div style="width: 100%">
 		<canvas id="canvas1"></canvas>
     </div>
@@ -272,9 +276,24 @@
                         chart2.data = lineChartData;
                         chart2.update(); 
 
-                        var table = document.getElementById("noLogwork");
+                        var tableNologwork = document.getElementById("noLogwork");
+                        var tableAlllogwork = document.getElementById("tablealllogwork");
+                        record.mydata.logwork.forEach(function(wl){
+                            keys += ',' + wl.key;
+                        })
+                        for (var i in record.logwork) {
+                            var row = tableAlllogwork.insertRow(0);
+                            var cell1 = row.insertCell(0);
+                            var cell2 = row.insertCell(1);
+                            var cell3 = row.insertCell(2);
+                            var cell4 = row.insertCell(3);
+                            cell1.innerHTML = record.logwork[i].name;
+                            cell2.innerHTML = '<a target="_blank" rel="noopener noreferrer" href="'+record.logwork[i].issueLink+'">'+record.logwork[i].key+' - ' + _.truncate(record.logwork[i].summary, {"length": 100, "omission": "..."}) + '</a>';
+                            cell3.innerHTML = record.logwork[i].time;
+                            cell4.innerHTML = record.logwork[i].timespent;
+                        }
                         for (var i in record.fouls){
-                            var row = table.insertRow(0);
+                            var row = tableNologwork.insertRow(0);
                             var cell1 = row.insertCell(0);
                             var cell2 = row.insertCell(1);
                             var cell3 = row.insertCell(2);

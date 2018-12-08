@@ -109,6 +109,7 @@ app.post('/sample', authMiddleware, function(req, res){
         mydata: {
             logwork: []
         },
+        logwork: [],
         barChartLogworkData: {
             labels: [],
             datasets: []
@@ -210,9 +211,21 @@ app.post('/sample', authMiddleware, function(req, res){
                             finish.mydata.logwork.push({
                                 key: issue.key,
                                 time: worklog.created,
-                                timespent: (worklog.timeSpentSeconds/60) + 'minutes'
+                                timespent: (worklog.timeSpentSeconds/60) + ' minutes'
                             });
                         }
+                        var duration = moment.duration(new moment().diff(moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss")));
+                        var days = duration.asDays();
+                        if(days<=3) {
+                            finish.logwork.push({
+                                name: worklog.name,
+                                key: issue.key,
+                                issueLink: jiraDomain + '/browse/' + issue.key,
+                                summary: issue.fields.summary,
+                                time: worklog.created,
+                                timespent: (worklog.timeSpentSeconds/60) + ' minutes'
+                            })
+                        }                        
                         var dateCreated = new moment(worklog.created).format('YYYY-MM-DD');
                         finish.users[worklog.name] = finish.users[worklog.name] || {total: 0};
                         finish.users[worklog.name].total += worklog.timeSpentSeconds;
@@ -245,7 +258,7 @@ app.post('/sample', authMiddleware, function(req, res){
                         finish.dates[dateCreated][worklog.name][issuetype] += worklog.timeSpentSeconds;
                     })
                 }
-                console.log(issue.key + ' ' + count +"/"+ total)
+                // console.log(issue.key + ' ' + count +"/"+ total)
                 cback();
             })
         }, function(){
@@ -281,6 +294,8 @@ app.post('/sample', authMiddleware, function(req, res){
                 datasets: datasets
             }
             finish.fouls = _.sortBy(finish.fouls, [function(o) { return o.user; }]);
+            finish.mydata.logwork = _.sortBy(finish.mydata.logwork, [function(o) { return o.time; }]);
+            finish.logwork = _.sortBy(finish.logwork, [function(o) { return o.name; }]);
             res.send(finish);
         })
     }
