@@ -22,7 +22,9 @@
 </head>
 
 <body>
+     
     <div style="width: 100%">
+            Filter:
         <select id="selectjql">
             <option value="project in (SL, KAN) AND updated >= -1w">Updated within the last 1 week (Scrum, Kanban)</option>
             <option value="Sprint in (291,292,293)">4.6.28 All</option>
@@ -33,12 +35,15 @@
         <button id="process">Process</button>
         
     </div>
-	<div style="width: 100%">
-		<canvas id="canvas1"></canvas>
-    </div>
+    
     <div style="width: 100%">
 		<canvas id="canvas2"></canvas>
     <div><button id="myreport2" hidden=true>My report</button></div>
+    <a target="_blank" rel="noopener noreferrer" id="myworklog"></a>
+	<div style="width: 100%">
+		<canvas id="canvas1"></canvas>
+    </div>
+    
     <div style="width: 100%">
 		<canvas id="canvas3"></canvas>
     </div>
@@ -220,6 +225,13 @@
                         session = record.session;
                         document.getElementById('myreport2').innerText = record.session.name;
                         document.getElementById('myreport2').hidden = false;
+                        var keys = '';   
+                        record.mydata.logwork.forEach(function(wl){
+                            keys += ',' + wl.key;
+                        })
+                        keys = keys.substr(1);
+                        document.getElementById('myworklog').setAttribute("href", record.jiraDomain + "/issues/?jql=key in ("+keys+") ORDER BY updated DESC");
+                        document.getElementById('myworklog').innerText = record.jiraDomain + "/issues/?jql=key in ("+keys+")";
                         chart1.data = record.barChartLogworkData;
                         chart1.update();  
                         chart3.data = record.barChartComponentData;

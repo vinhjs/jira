@@ -95,6 +95,7 @@ app.get('/database', function(req, res){
 })
 app.post('/sample', authMiddleware, function(req, res){
     var finish = {
+        jiraDomain: jiraDomain,
         issuetypes: [],
         point: 0,
         issues: {
