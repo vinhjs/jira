@@ -8,7 +8,8 @@ const FileSync = require('lowdb/adapters/FileSync')
 
 const adapter = new FileSync('db.json')
 const db = low(adapter);
-
+db.defaults({ histories: [] })
+.write()
 var jiraDomain = 'https://issues.qup.vn';
 
 var searchJQL = function(startAt, jql, auth, session, cb){
@@ -106,7 +107,25 @@ function setCacheDb(key, data, updated, cb){
         cb("db error", null);
     }
 }
+function addHistory(username, jql){
+    if (db) {
+        db.get('histories')
+        .push({ username: username, jql: jql, time: new Date()})
+        .write()
+    }
+}
+function getHistory(cb){
+    if (db) {
+        var histories = db.get('histories')
+        .value()
+        cb(null, histories)
+    } else {
+        cb(null, [])
+    }
+}
 module.exports = {
     getWorklog,
-    searchJQL
+    searchJQL,
+    addHistory,
+    getHistory
 }

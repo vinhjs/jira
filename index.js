@@ -16,12 +16,6 @@ app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Authorization, Content-Type, Accept");
     next();
 });
-var randomScalingFactor = function() {
-    return Math.floor((Math.random() * 100) + 50);;
-};
-var randomScalingFactor50 = function() {
-    return Math.floor((Math.random() * 50) + 1);;
-};
 var jira_utils = require('./jira_utils');
 var colors = require('./colors');
 var auth = require('http-auth');
@@ -40,60 +34,15 @@ var basic = auth.basic({
 });
 var authMiddleware = auth.connect(basic);
 var jiraDomain = 'https://issues.qup.vn';
-var sprints = [
-    {
-        id: 283,
-        name: "web 4.6.26"
-    },
-    {
-        id: 284,
-        name: "app 4.6.26"
-    },
-    {
-        id: 285,
-        name: "server 4.6.26"
-    },
-    {
-        id: 286,
-        name: "web_booking 4.6.26"
-    },
-    {
-        id: 287,
-        name: "server 4.6.27"
-    },
-    {
-        id: 288,
-        name: "web 4.6.27"
-    },
-    {
-        id: 289,
-        name: "app 4.6.27"
-    },
-    {
-        id: 291,
-        name: "app 4.6.28"
-    },
-    {
-        id: 292,
-        name: "web 4.6.28"
-    },
-    {
-        id: 293,
-        name: "server 4.6.28"
-    }
-];
-app.get('/database', function(req, res){
-    var fs = require('fs');
-    fs.readFile(__dirname + '/database.json', 'utf8', function(err, data){
-        try {
-            res.send(JSON.parse(data));
-        } catch (ex) {
-            res.send(ex);
-        }
-    });
 
+app.get('/histories', function(req, res){
+    jira_utils.getHistory(function(error, data){
+        res.send({error, data})
+    })
 })
-app.post('/sample', authMiddleware, function(req, res){
+app.post('/jql', authMiddleware, function(req, res){
+    var username = Buffer.from(req.headers.authorization.split(" ")[1], 'base64').toString('ascii').split(":")[0];
+    jira_utils.addHistory(username, req.body.jql);    
     var finish = {
         jiraDomain: jiraDomain,
         issuetypes: [],
@@ -121,7 +70,7 @@ app.post('/sample', authMiddleware, function(req, res){
     } 
     var startAt = 0;
     // var jql= "project in (SL, KAN) AND updated >= -2w";
-    var jql= req.body.jql || "Sprint in (291,292,293)";
+    var jql= req.body.jql || "project in (SL, KAN) AND updated >= -2w";
     var totalResult = [];
     var total = 0;
     var count = 0;
