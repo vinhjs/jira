@@ -8,8 +8,7 @@ const FileSync = require('lowdb/adapters/FileSync')
 
 const adapter = new FileSync('db.json')
 const db = low(adapter);
-db.defaults({ histories: [] })
-.write()
+
 var jiraDomain = 'https://issues.qup.vn';
 
 var searchJQL = function(startAt, jql, auth, session, cb){
