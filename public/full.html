@@ -72,6 +72,7 @@
         <div class="chart-container"><canvas id="canvas4"></canvas></div>
         <div class="chart-container"><canvas id="canvas5"></canvas></div>
     </div>
+    <div><button id="changeCircleSize">Semi/Full Circle</button></div>
     <div style="width: 100%" >
         <table id="noLogwork" style="width: 100%" border="1">
             <tr>
@@ -282,6 +283,25 @@
                 myreport2 = !myreport2;
                 chart2.update(); 
             })
+            document.getElementById('changeCircleSize').addEventListener('click', function() {
+                if (chart4.options.circumference === Math.PI) {
+                    chart4.options.circumference = 2 * Math.PI;
+                    chart4.options.rotation = -Math.PI / 2;
+                } else {
+                    chart4.options.circumference = Math.PI;
+                    chart4.options.rotation = -Math.PI;
+                }
+                if (chart5.options.circumference === Math.PI) {
+                    chart5.options.circumference = 2 * Math.PI;
+                    chart5.options.rotation = -Math.PI / 2;
+                } else {
+                    chart5.options.circumference = Math.PI;
+                    chart5.options.rotation = -Math.PI;
+                }
+
+                chart4.update();
+                chart5.update();
+            });
             document.getElementById('process').addEventListener('click', function() {
                 document.getElementById('myreport2').hidden = true;
                 NProgress.start();
