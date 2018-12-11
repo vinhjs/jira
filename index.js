@@ -64,6 +64,7 @@ app.post('/jql', authMiddleware, function(req, res){
         },
         users: {},
         dates: {},
+        eta: {},
         components: {},
         fouls: [],
         mydata: {
@@ -128,8 +129,10 @@ app.post('/jql', authMiddleware, function(req, res){
         async.forEachLimit(totalResult, 10, function(issue, cback){
             var issuetype = _.get(issue, "fields.issuetype.name", "unknown");
             var issuestatus = _.get(issue, "fields.status.name", "unknown");
+            var assigneeName = _.get(issue, 'fields.assignee.name', "");
             finish.issuetypes = _.uniq(finish.issuetypes.push(issuetype));
             var components = _.get(issue, "fields.components", []);
+            var timeestimate = _.get(issue, 'fields.timeestimate', 0);
             if (issue.fields.subtasks.length == 0) {
                 var timespent = _.get(issue, "fields.timespent", 0);
                 if (!timespent && _.indexOf(["Story"], issuetype) == -1 && _.indexOf(["Open", "Closed", "In Progress"], issuestatus) == -1) {
@@ -138,7 +141,7 @@ app.post('/jql', authMiddleware, function(req, res){
                             issueLink: jiraDomain + '/browse/' + issue.key,
                             summary:  issue.fields.summary,
                             key:  issue.key,
-                            user: issue.fields.assignee.name,
+                            user: assigneeName,
                             avatar: issue.fields.assignee.avatarUrls["24x24"],
                             msg: "No logwork"
                         })
@@ -162,6 +165,14 @@ app.post('/jql', authMiddleware, function(req, res){
             }
             if (issuetype === "Story") {
                 finish.point += _.get(issue, "fields.customfield_10004", 0);
+            } else if (assigneeName && timeestimate){
+                //get estimate time
+                finish.barChartLogworkData.labels.push(assigneeName);
+                if (finish.eta[assigneeName]) {
+                    finish.eta[assigneeName] += timeestimate /60/60;
+                } else {
+                    finish.eta[assigneeName] = timeestimate /60/60;
+                }
             }
             if(finish.issues.status[issuestatus]) {
                 finish.issues.status[issuestatus]++;
@@ -201,7 +212,7 @@ app.post('/jql', authMiddleware, function(req, res){
                         finish.users[worklog.name][issuetype] += worklog.timeSpentSeconds;
                         
                         //barchart         
-                        finish.barChartLogworkData.labels.push(worklog.name)
+                        finish.barChartLogworkData.labels.push(worklog.name);
                         var users = _.uniq(finish.barChartLogworkData.labels);                                    
                         finish.barChartLogworkData.labels = users;
                         var labelIndex = _.indexOf(users, worklog.name);
@@ -209,6 +220,7 @@ app.post('/jql', authMiddleware, function(req, res){
                         if (datasetIndex == -1) {
                             finish.barChartLogworkData.datasets.push({
                                 label: issuetype,
+                                stack: 'Stack 0',
                                 backgroundColor: colors.issuetypes[finish.barChartLogworkData.datasets.length].code,
                                 data: []
                             });  
@@ -245,6 +257,20 @@ app.post('/jql', authMiddleware, function(req, res){
                     })
                 }                
             });
+            var stack1 = [];
+            for (var i in finish.barChartLogworkData.labels) {
+                if (finish.eta[finish.barChartLogworkData.labels[i]]) {
+                    stack1.push(finish.eta[finish.barChartLogworkData.labels[i]]);
+                } else {
+                    stack1.push(0);
+                }
+            }
+            finish.barChartLogworkData.datasets.push({
+                label: 'Estimate',
+                stack: 'Stack 1',
+                backgroundColor: "rgb(0, 0, 255)",
+                data: stack1
+            })
             var components = _.keys(finish.components);
             var issuestatus = _.keys(finish.issues.status);
             var datasets = [];  
@@ -256,7 +282,8 @@ app.post('/jql', authMiddleware, function(req, res){
                         return finish.components[component][issuestatus[i]] || 0;
                     })
                 });
-            }          
+            }   
+                   
             finish.barChartComponentData = {
                 labels: components,
                 datasets: datasets
