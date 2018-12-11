@@ -166,6 +166,7 @@ app.post('/jql', authMiddleware, function(req, res){
             if (issuetype === "Story") {
                 finish.point += _.get(issue, "fields.customfield_10004", 0);
             } else if (assigneeName && timeestimate){
+                finish.point += _.get(issue, "fields.customfield_10004", 0);
                 //get estimate time
                 finish.barChartLogworkData.labels.push(assigneeName);
                 var users = _.uniq(finish.barChartLogworkData.labels);                                    
@@ -202,6 +203,7 @@ app.post('/jql', authMiddleware, function(req, res){
                             finish.logwork.push({
                                 name: worklog.name,
                                 key: issue.key,
+                                status: issuestatus,
                                 issueLink: jiraDomain + '/browse/' + issue.key,
                                 summary: issue.fields.summary,
                                 time: moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format("YYYY-MM-DD HH:mm"),
