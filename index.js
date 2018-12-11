@@ -60,7 +60,8 @@ app.post('/jql', authMiddleware, function(req, res){
         point: 0,
         issues: {
             total: 0,
-            status: {}
+            status: {},
+            types: {}
         },
         users: {},
         dates: {},
@@ -183,7 +184,11 @@ app.post('/jql', authMiddleware, function(req, res){
                 finish.issues.status[issuestatus] = 1;
             }
             finish.issues.total++;
-            finish.issues[issuetype] = finish.issues[issuetype] ? finish.issues[issuetype] + 1 : 1;
+            if (finish.issues.types[issuetype]) {
+                finish.issues.types[issuetype]++;
+            } else {
+                finish.issues.types[issuetype] = 1;
+            }
             //get log work info
             jira_utils.getWorklog(issue.fields.updated, issue.key, req.headers.authorization, function(err, rs){
                 count++;
@@ -278,20 +283,42 @@ app.post('/jql', authMiddleware, function(req, res){
             })
             var components = _.keys(finish.components);
             var issuestatus = _.keys(finish.issues.status);
-            var datasets = [];  
+            var issuetypes = _.keys(finish.issues.types);
+            var datasetsBarChartComponent = [];  
+            var datasetsDoughnutChartStatus = [{
+                data: [],
+                backgroundColor: []
+            }];  
+            var datasetsDoughnutChartTypes = [{
+                data: [],
+                backgroundColor: []
+            }];  
             for(var i in issuestatus) {
-                datasets.push({
+                datasetsBarChartComponent.push({
                     "label": issuestatus[i],
                     "backgroundColor": colors.issuestatus[i].code || "rgb(255, 99, 132)",
                     "data": _.map(components, function(component){
                         return finish.components[component][issuestatus[i]] || 0;
                     })
                 });
+                datasetsDoughnutChartStatus[0].data.push(finish.issues.status[issuestatus[i]]);
+                datasetsDoughnutChartStatus[0].backgroundColor.push(colors.issuestatus[i].code || "rgb(255, 99, 132)");
             }   
-                   
+            for(var i in issuetypes) {
+                datasetsDoughnutChartTypes[0].data.push(finish.issues.types[issuetypes[i]]);
+                datasetsDoughnutChartTypes[0].backgroundColor.push(colors.issuetypes[i].code || "rgb(255, 99, 132)");
+            }
+            finish.doughnutChartStatusData = {
+                labels: issuestatus,
+                datasets: datasetsDoughnutChartStatus
+            }   
+            finish.doughnutChartTypesData = {
+                labels: issuetypes,
+                datasets: datasetsDoughnutChartTypes
+            }       
             finish.barChartComponentData = {
                 labels: components,
-                datasets: datasets
+                datasets: datasetsBarChartComponent
             }
             finish.fouls = _.sortBy(finish.fouls, [function(o) { return o.user; }]);
             finish.mydata.logwork = _.sortBy(finish.mydata.logwork, [function(o) { return o.time; }]);

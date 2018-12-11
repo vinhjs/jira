@@ -17,6 +17,18 @@
 		-moz-user-select: none;
 		-webkit-user-select: none;
 		-ms-user-select: none;
+	}    
+    .chart-container {
+		width: 40%;
+		margin-left: 40px;
+		margin-right: 40px;
+		margin-bottom: 40px;
+	}
+	.container {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		justify-content: center;
 	}
 	</style>
 </head>
@@ -56,7 +68,11 @@
     <div style="width: 100%">
 		<canvas id="canvas3"></canvas>
     </div>
-    <div style="width: 100%">
+    <div class="container">
+        <div class="chart-container"><canvas id="canvas4"></canvas></div>
+        <div class="chart-container"><canvas id="canvas5"></canvas></div>
+    </div>
+    <div style="width: 100%" >
         <table id="noLogwork" style="width: 100%" border="1">
             <tr>
                 <th>No.</th>
@@ -72,6 +88,8 @@
             var ctx2 = document.getElementById('canvas2').getContext('2d');
             var ctx3 = document.getElementById('canvas3').getContext('2d'); 
             var ctx1 = document.getElementById('canvas1').getContext('2d'); 
+            var ctx4 = document.getElementById('canvas4').getContext('2d'); 
+            var ctx5 = document.getElementById('canvas5').getContext('2d'); 
             var color = Chart.helpers.color;
             var timeFormat = 'MM/DD/YYYY HH:mm';
             var session = {};
@@ -212,9 +230,47 @@
                     
                 }
             }
+            var config4 = {
+                type: 'doughnut',
+                data: {},
+                options: {
+                    responsive: true,
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Issue status'
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                }
+            };
+            var config5 = {
+                type: 'doughnut',
+                data: {},
+                options: {
+                    responsive: true,
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Issue types'
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                }
+            };
             var chart1 = new Chart(ctx1, config1);    
             var chart2 = new Chart(ctx2, config2);    
             var chart3 = new Chart(ctx3, config3);
+            var chart4 = new Chart(ctx4, config4);
+            var chart5 = new Chart(ctx5, config5);
             document.getElementById('myreport2').addEventListener('click', function() {
                 for(var i in chart2.config.data.datasets){
                     if(chart2.config.data.datasets[i].label !== session.name){
@@ -283,6 +339,10 @@
                         chart2.data = lineChartData;
                         chart2.update(); 
 
+                        chart4.data = record.doughnutChartStatusData;
+                        chart4.update();
+                        chart5.data = record.doughnutChartTypesData;
+                        chart5.update();
                         var tableNologwork = document.getElementById("noLogwork");
                         var tableAlllogwork = document.getElementById("tablealllogwork");
                         $("#noLogwork tr").remove(); 
