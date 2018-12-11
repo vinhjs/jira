@@ -26,11 +26,15 @@
     <div style="width: 100%">
             Filter:
         <select id="selectjql">
-            <option value="project in (SL, KAN) AND updated >= -1w">Updated within the last 1 week (Scrum, Kanban)</option>
-            <option value="Sprint in (291,292,293)">4.6.28 All</option>
-            <option value="Sprint in (291)">4.6.28 App</option>
-            <option value="Sprint in (292)">4.6.28 Web</option>
-            <option value="Sprint in (293)">4.6.28 Server</option>
+            <option value=0>Updated within the last 1 week (Scrum, Kanban)</option>
+            <option value=1>4.6.29 All</option>
+            <option value=2>4.6.29 Server</option>
+            <option value=3>4.6.29 Web</option>
+            <option value=4>4.6.29 App</option>
+            <option value=5>4.6.28 All</option>
+            <option value=6>4.6.28 App</option>
+            <option value=7>4.6.28 Web</option>
+            <option value=8>4.6.28 Server</option>
         </select> 
         <button id="process">Process</button>
         
@@ -39,7 +43,8 @@
     <div style="width: 100%">
 		<canvas id="canvas2"></canvas>
     <div><button id="myreport2" hidden=true>My report</button><a target="_blank" rel="noopener noreferrer" id="myworklog"></a></div>
-    
+
+    <div>List logwork within last 3 days</div>
     <div style="width: 100%">
         <table id="tablealllogwork" style="width: 100%" border="1">
         </table>
@@ -235,7 +240,7 @@
                         })
                         keys = keys.substr(1);
                         document.getElementById('myworklog').setAttribute("href", record.jiraDomain + "/issues/?jql=key in ("+keys+") ORDER BY updated DESC");
-                        document.getElementById('myworklog').innerText = record.jiraDomain + "/issues/?jql=key in ("+keys+")";
+                        document.getElementById('myworklog').innerText = "My logwork: " + record.jiraDomain + "/issues/?jql=key in ("+keys+")";
                         chart1.data = record.barChartLogworkData;
                         chart1.update();  
                         chart3.data = record.barChartComponentData;

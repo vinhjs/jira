@@ -38,8 +38,19 @@ var jiraDomain = 'https://issues.qup.vn';
 app.get('/histories', function(req, res){
     jira_utils.getHistory(function(error, data){
         res.send({error, data})
-    })
-})
+    });
+});
+var jqls = [
+    "project in (SL, KAN) AND updated >= -1w",
+    '(Sprint in (295,296,297) AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan)',
+    '(Sprint = 297 AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan)',
+    '(Sprint = 296 AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan)',
+    '(Sprint = 295 AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan)',
+    '(Sprint in (291,292,293) AND project = "Scrum Lab") OR (cf[10700] = 16002 AND project = KanBan)',
+    '(Sprint = 291 AND project = "Scrum Lab") OR (cf[10700] = 16002 AND project = KanBan)',
+    '(Sprint = 292 AND project = "Scrum Lab") OR (cf[10700] = 16002 AND project = KanBan)',
+    '(Sprint = 293 AND project = "Scrum Lab") OR (cf[10700] = 16002 AND project = KanBan)'
+]
 app.post('/jql', authMiddleware, function(req, res){
     var username = Buffer.from(req.headers.authorization.split(" ")[1], 'base64').toString('ascii').split(":")[0];
     jira_utils.addHistory(username, req.body.jql);    
@@ -70,7 +81,13 @@ app.post('/jql', authMiddleware, function(req, res){
     } 
     var startAt = 0;
     // var jql= "project in (SL, KAN) AND updated >= -2w";
-    var jql= req.body.jql || "project in (SL, KAN) AND updated >= -2w";
+    var jqlIndex = 0;
+    try {
+        jqlIndex = parseInt(req.body.jql);
+    } catch (ex) {
+        console.log(ex);
+    }
+    var jql= jqls[jqlIndex] || "project in (SL, KAN) AND updated >= -2w";
     var totalResult = [];
     var total = 0;
     var count = 0;
@@ -100,9 +117,11 @@ app.post('/jql', authMiddleware, function(req, res){
                 }, function(){
                     finishSearch();
                 })
+            } else {
+                finishSearch();
             }
         } else {
-            finishSearch()
+            finishSearch();
         }
     })
     function finishSearch(){
@@ -171,11 +190,11 @@ app.post('/jql', authMiddleware, function(req, res){
                                 key: issue.key,
                                 issueLink: jiraDomain + '/browse/' + issue.key,
                                 summary: issue.fields.summary,
-                                time: worklog.created,
+                                time: moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format("YYYY-MM-DD HH:mm"),
                                 timespent: (worklog.timeSpentSeconds/60) + ' minutes'
                             })
                         }                        
-                        var dateCreated = new moment(worklog.created).format('YYYY-MM-DD');
+                        var dateCreated = new moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format('YYYY-MM-DD');
                         finish.users[worklog.name] = finish.users[worklog.name] || {total: 0};
                         finish.users[worklog.name].total += worklog.timeSpentSeconds;
                         finish.users[worklog.name][issuetype] = finish.users[worklog.name][issuetype] || 0;
@@ -244,7 +263,7 @@ app.post('/jql', authMiddleware, function(req, res){
             }
             finish.fouls = _.sortBy(finish.fouls, [function(o) { return o.user; }]);
             finish.mydata.logwork = _.sortBy(finish.mydata.logwork, [function(o) { return o.time; }]);
-            finish.logwork = _.sortBy(finish.logwork, [function(o) { return o.name; }]);
+            finish.logwork = _.sortBy(finish.logwork, [function(o) { return o.time; }]);
             res.send(finish);
         })
     }
