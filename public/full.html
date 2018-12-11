@@ -82,7 +82,7 @@
                 options: {	
                     title: {
                         display: true,
-                        text: 'LOGWORK - SPENT TIME'
+                        text: 'LOGWORK - SPENT TIME / ESTIMATE'
                     },
                     tooltips: {
                         mode: 'index',
@@ -91,11 +91,13 @@
                             // Use the footer callback to display the sum of the items showing in the tooltip
                             footer: function(tooltipItems, data) {
                                 var sum = 0;
-
-                                tooltipItems.forEach(function(tooltipItem) {
-                                    sum += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+                                var len = tooltipItems.length;
+                                tooltipItems.forEach(function(tooltipItem) {       
+                                    if (tooltipItem.datasetIndex != len-1) {
+                                        sum += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+                                    }                             
                                 });
-                                return 'Sum: ' + sum;
+                                return 'Logwork Sum: ' + sum;
                             }
                         },
                         footerFontStyle: 'normal'
@@ -172,7 +174,7 @@
                 options: {	
                     title: {
                         display: true,
-                        text: 'COMPONENTS - STATUS'
+                        text: 'TOTAL ISSUES BY COMPONENTS - STATUS'
                     },
                     tooltips: {
                         mode: 'index',

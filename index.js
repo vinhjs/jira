@@ -168,6 +168,8 @@ app.post('/jql', authMiddleware, function(req, res){
             } else if (assigneeName && timeestimate){
                 //get estimate time
                 finish.barChartLogworkData.labels.push(assigneeName);
+                var users = _.uniq(finish.barChartLogworkData.labels);                                    
+                finish.barChartLogworkData.labels = users;
                 if (finish.eta[assigneeName]) {
                     finish.eta[assigneeName] += timeestimate /60/60;
                 } else {
@@ -196,13 +198,14 @@ app.post('/jql', authMiddleware, function(req, res){
                         var duration = moment.duration(new moment().diff(moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss")));
                         var days = duration.asDays();
                         if(days<=3) {
+                            var timespent = (worklog.timeSpentSeconds/60);
                             finish.logwork.push({
                                 name: worklog.name,
                                 key: issue.key,
                                 issueLink: jiraDomain + '/browse/' + issue.key,
                                 summary: issue.fields.summary,
                                 time: moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format("YYYY-MM-DD HH:mm"),
-                                timespent: (worklog.timeSpentSeconds/60) + ' minutes'
+                                timespent: timespent < 60 ? (timespent + ' minutes') : (timespent /60 + " hours")
                             })
                         }                        
                         var dateCreated = new moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format('YYYY-MM-DD');
@@ -244,17 +247,17 @@ app.post('/jql', authMiddleware, function(req, res){
         }, function(){
             console.log('DONE');
             //remove null value in datasets.data
+            var lenDataLabels = finish.barChartLogworkData.labels.length;
             finish.barChartLogworkData.datasets = _.map(finish.barChartLogworkData.datasets, function(dataset) { 
+                var data = [];                
+                for(var i = 0; i<lenDataLabels; i++) {
+                    data.push(dataset.data[i] ? dataset.data[i]/60/60 : 0);
+                }
                 return {
                     label: dataset.label,
+                    stack: "Stack 0",
                     backgroundColor: dataset.backgroundColor,
-                    data: _.map(dataset.data, function(dts) { 
-                        if (!dts) {
-                            return 0;
-                        } else {
-                            return (dts/60/60);
-                        }                        
-                    })
+                    data: data
                 }                
             });
             var stack1 = [];
