@@ -8,6 +8,8 @@ module.exports = {
         { name: 'purple', code: 'rgb(153, 102, 255)'},
         { name: 'grey', code: 'rgb(201, 203, 207)'},
         { name: 'blue', code: 'rgb(0, 0, 255)'},
+        { name: 'blue', code: 'rgb(141, 143, 183)'},
+        { name: 'blue', code: 'rgb(40, 63, 56)'},
     ],
     issuestatus: [
         { name: 'red', code: 'rgb(255, 99, 132)'},
