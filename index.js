@@ -237,6 +237,7 @@ app.post('/jql', authMiddleware, function(req, res){
                                 key: issue.key,
                                 status: issuestatus,
                                 issueLink: jiraDomain + '/browse/' + issue.key,
+                                issuesTypeIconUrl: _.get(issue, "fields.issuetype.iconUrl", ""),
                                 summary: issue.fields.summary,
                                 time: moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format("YYYY-MM-DD HH:mm"),
                                 timespent: timespent < 60 ? (timespent + ' minutes') : (timespent /60 + " hours")

@@ -382,7 +382,7 @@
                             var cell4 = row.insertCell(3);
                             var cell5 = row.insertCell(4);
                             cell1.innerHTML = record.logwork[i].name;
-                            cell2.innerHTML = '<a target="_blank" rel="noopener noreferrer" href="'+record.logwork[i].issueLink+'">'+record.logwork[i].key+' - ' + _.truncate(record.logwork[i].summary, {"length": 100, "omission": "..."}) + '</a>';
+                            cell2.innerHTML = '<img src="'+record.logwork[i].issuesTypeIconUrl+'"></img> <a target="_blank" rel="noopener noreferrer" href="'+record.logwork[i].issueLink+'">'+record.logwork[i].key+' - ' + _.truncate(record.logwork[i].summary, {"length": 100, "omission": "..."}) + '</a>';
                             cell3.innerHTML = record.logwork[i].time;
                             cell4.innerHTML = record.logwork[i].timespent;
                             cell5.innerHTML = record.logwork[i].status;
