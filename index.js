@@ -148,6 +148,30 @@ app.post('/jql', authMiddleware, function(req, res){
                         })
                     }                                        
                 }
+                if (!timeestimate && _.indexOf(["Story"], issuetype) == -1) {
+                    if(issue.fields.assignee) {
+                        finish.fouls.push({
+                            issueLink: jiraDomain + '/browse/' + issue.key,
+                            summary:  issue.fields.summary,
+                            key:  issue.key,
+                            user: assigneeName,
+                            avatar: issue.fields.assignee.avatarUrls["24x24"],
+                            msg: "No estimate"
+                        })
+                    } 
+                }
+                if (timeestimate && (timeestimate/60/60) > 8 && _.indexOf(["Story"], issuetype) == -1) {
+                    if(issue.fields.assignee) {
+                        finish.fouls.push({
+                            issueLink: jiraDomain + '/browse/' + issue.key,
+                            summary:  issue.fields.summary,
+                            key:  issue.key,
+                            user: assigneeName,
+                            avatar: issue.fields.assignee.avatarUrls["24x24"],
+                            msg: "Estimate over 8h"
+                        })
+                    } 
+                }
                 components.forEach(function(component){
                     if (finish.components[component.name]) {
                         finish.components[component.name].total++;
