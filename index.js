@@ -134,6 +134,9 @@ app.post('/jql', authMiddleware, function(req, res){
             finish.issuetypes = _.uniq(finish.issuetypes.push(issuetype));
             var components = _.get(issue, "fields.components", []);
             var timeestimate = _.get(issue, 'fields.timeestimate', 0);
+            if (timeestimate == 0) {
+                timeestimate = _.get(issue, 'fields.timeoriginalestimate', 0);
+            }
             if (issue.fields.subtasks.length == 0) {
                 var timespent = _.get(issue, "fields.timespent", 0);
                 if (!timespent && _.indexOf(["Story"], issuetype) == -1 && _.indexOf(["Open", "Closed", "In Progress"], issuestatus) == -1) {
