@@ -54,7 +54,16 @@
     
     <div style="width: 100%">
 		<canvas id="canvas2"></canvas>
-    <div><button id="myreport2" hidden=true>My report</button><a target="_blank" rel="noopener noreferrer" id="myworklog"></a></div>
+    <div>
+        <select id="selectDateLineChart">
+            <option value='0'>All</option>
+            <option value='3'>3 days</option>
+            <option value='5'>5 days</option>
+            <option value='7'>7 days</option>
+        </select> 
+        <button id="myreport2" hidden=true>My report</button>
+        <a target="_blank" rel="noopener noreferrer" id="myworklog"></a>
+    </div>
 
     <div>List logwork within last 3 days</div>
     <div style="width: 100%">
@@ -98,6 +107,7 @@
             var timeFormat = 'MM/DD/YYYY HH:mm';
             var session = {};
             var myreport2 = false;
+            var all_data = {};
             var config1 = {
                 type: 'bar',
                 data: {},
@@ -184,7 +194,7 @@
                         yAxes: [{
                             scaleLabel: {
                                 display: true,
-                                labelString: 'hours'
+                                labelString: 'Hours'
                             }
                         }]
                     },
@@ -275,6 +285,74 @@
             var chart3 = new Chart(ctx3, config3);
             var chart4 = new Chart(ctx4, config4);
             var chart5 = new Chart(ctx5, config5);
+            var canvas2 = document.getElementById("canvas2");
+            canvas2.onclick = function(evt) {
+                var activePoints  = chart2.getElementsAtEvent(evt)[0];
+                if (activePoints ) {    
+                    console.log(activePoints);
+                }
+            }
+            function generateLineChartLogWork(allUsers, dates, days){
+                var lineChartData = {
+                    labels: [],
+                    datasets: []
+                };
+                var now = new moment().hour(0).minute(0).second(0).millisecond(0);
+                _.map(_.keys(dates).sort(), function(time){
+                    var duration = moment.duration(now.diff(moment(time, "YYYY-MM-DD"))).asDays();
+                    if (duration <= days && days) {
+                        lineChartData.labels.push(moment(time).toDate());
+                    } else if (!days){
+                        lineChartData.labels.push(moment(time).toDate());
+                    }
+                })
+                let users = _.keys(allUsers);
+                _.map(users, function(user){
+                    var dataset = {
+                        label: user,
+                        backgroundColor: window.jira_color.users[user] || 'rbg(0,0,0)',
+                        borderColor: window.jira_color.users[user] || 'rbg(0,0,0)',
+                        fill: false,
+                        data: []
+                    };        
+                    _.map(_.keys(dates).sort(), function(time){
+                        var duration = moment.duration(now.diff(moment(time, "YYYY-MM-DD"))).asDays();
+                        if (duration <= days && days) {
+                            if (dates[time][user]){
+                                dataset.data.push({
+                                    x: moment(time).format(timeFormat),
+                                    y: dates[time][user].total/60/60
+                                })
+                            } else {
+                                dataset.data.push({
+                                    x: moment(time).format(timeFormat),
+                                    y: 0
+                                })
+                            } 
+                        } else if (!days){
+                            if (dates[time][user]){
+                                dataset.data.push({
+                                    x: moment(time).format(timeFormat),
+                                    y: dates[time][user].total/60/60
+                                })
+                            } else {
+                                dataset.data.push({
+                                    x: moment(time).format(timeFormat),
+                                    y: 0
+                                })
+                            }
+                        }                        
+                    })
+                    lineChartData.datasets.push(dataset);
+                }) 
+                return lineChartData;
+            }
+            $('#selectDateLineChart').on('change', function() {
+                var days = parseInt(this.value);
+                console.log(days);
+                chart2.data = generateLineChartLogWork(all_data.users, all_data.dates, days);
+                chart2.update(); 
+            });
             document.getElementById('myreport2').addEventListener('click', function() {
                 for(var i in chart2.config.data.datasets){
                     if(chart2.config.data.datasets[i].label !== session.name){
@@ -312,6 +390,7 @@
                     var jql = $(this).val();
                     $.post('/jql', {jql: jql}, function (record) {
                         console.log(record);
+                        all_data = record;
                         session = record.session;
                         document.getElementById('myreport2').innerText = record.session.name;
                         document.getElementById('myreport2').hidden = false;
@@ -327,40 +406,13 @@
                         chart3.data = record.barChartComponentData;
                         chart3.update();
                         ///
-                        
-                        var lineChartData = {
-                            labels: [],
-                            datasets: []
-                        };
-                        _.map(_.keys(record.dates).sort(), function(time){
-                            lineChartData.labels.push(moment(time).toDate());        
+                        $.each($("#selectDateLineChart option:selected"), function(){
+                            var days = parseInt($(this).val());
+                            var lineChartData = generateLineChartLogWork(record.users, record.dates, days);
+                            chart2.data = lineChartData;
+                            chart2.update(); 
                         })
-                        let users = _.keys(record.users);
-                        _.map(users, function(user){
-                            var dataset = {
-                                label: user,
-                                backgroundColor: window.jira_color.users[user] || 'rbg(0,0,0)',
-                                borderColor: window.jira_color.users[user] || 'rbg(0,0,0)',
-                                fill: false,
-                                data: []
-                            };        
-                            _.map(_.keys(record.dates).sort(), function(time){
-                                if (record.dates[time][user]){
-                                    dataset.data.push({
-                                        x: moment(time).format(timeFormat),
-                                        y: record.dates[time][user].total/60/60
-                                    })
-                                } else {
-                                    dataset.data.push({
-                                        x: moment(time).format(timeFormat),
-                                        y: 0
-                                    })
-                                }       
-                            })
-                            lineChartData.datasets.push(dataset);
-                        })              
-                        chart2.data = lineChartData;
-                        chart2.update(); 
+                        
 
                         chart4.data = record.doughnutChartStatusData;
                         chart4.update();
