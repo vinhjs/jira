@@ -73,6 +73,9 @@
         <div class="chart-container"><canvas id="canvas5"></canvas></div>
     </div>
     <div><button id="changeCircleSize">Semi/Full Circle</button></div>
+    <br>
+    <div><h3>List warning:</h3></div>
+    <br>
     <div style="width: 100%" >
         <table id="noLogwork" style="width: 100%" border="1">
             <tr>
@@ -392,7 +395,7 @@
                             var cell4 = row.insertCell(3);
                             cell1.innerHTML = parseInt(i) + 1;
                             cell2.innerHTML = '<img src="'+record.fouls[i].avatar+'"></img>' + record.fouls[i].user;
-                            cell3.innerHTML = '<a target="_blank" rel="noopener noreferrer" href="'+record.fouls[i].issueLink+'">'+record.fouls[i].key+' - ' + _.truncate(record.fouls[i].summary, {"length": 100, "omission": "..."}) + '</a>';
+                            cell3.innerHTML = '<img src="'+record.fouls[i].issuesTypeIconUrl+'"></img> <a target="_blank" rel="noopener noreferrer" href="'+record.fouls[i].issueLink+'">'+record.fouls[i].key+' - ' + _.truncate(record.fouls[i].summary, {"length": 100, "omission": "..."}) + '</a>';
                             cell4.innerHTML = record.fouls[i].msg;
                         }
                     

@@ -140,6 +140,7 @@ app.post('/jql', authMiddleware, function(req, res){
                     if(issue.fields.assignee) {
                         finish.fouls.push({
                             issueLink: jiraDomain + '/browse/' + issue.key,
+                            issuesTypeIconUrl: _.get(issue, "fields.issuetype.iconUrl", ""),
                             summary:  issue.fields.summary,
                             key:  issue.key,
                             user: assigneeName,
@@ -152,6 +153,7 @@ app.post('/jql', authMiddleware, function(req, res){
                     if(issue.fields.assignee) {
                         finish.fouls.push({
                             issueLink: jiraDomain + '/browse/' + issue.key,
+                            issuesTypeIconUrl: _.get(issue, "fields.issuetype.iconUrl", ""),
                             summary:  issue.fields.summary,
                             key:  issue.key,
                             user: assigneeName,
@@ -164,6 +166,7 @@ app.post('/jql', authMiddleware, function(req, res){
                     if(issue.fields.assignee) {
                         finish.fouls.push({
                             issueLink: jiraDomain + '/browse/' + issue.key,
+                            issuesTypeIconUrl: _.get(issue, "fields.issuetype.iconUrl", ""),
                             summary:  issue.fields.summary,
                             key:  issue.key,
                             user: assigneeName,
