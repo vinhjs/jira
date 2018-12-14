@@ -40,12 +40,17 @@ app.get('/histories', function(req, res){
         res.send({error, data})
     });
 });
+var groups = {
+    server: '"vinh.tran","thuan.ho","chuong.vo","chuong.nguyen","hoang.nguyen","hai.ta","nhan.phan","nghia.huynht","vi.leh"',
+    web: '"nguyen.tran","vi.phantt","thuan.le","dat.huynh","dong.nguyen","dat.pham","hoang.dinh"',
+    app: '"duy.phan","hao.lek","dung.nguyen","hao.le","phuong.tran","nhuan.vu","duy.nguyen","quynh.hoang","hien.do"',
+}
 var jqls = [
     "project in (SL, KAN) AND updated >= -1w",
     '(Sprint in (295,296,297) AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan)',
-    '(Sprint = 297 AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan)',
-    '(Sprint = 296 AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan)',
-    '(Sprint = 295 AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan)',
+    '(Sprint = 297 AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan AND assignee in ('+groups.server+'))',
+    '(Sprint = 296 AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan AND assignee in ('+groups.web+'))',
+    '(Sprint = 295 AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan AND assignee in ('+groups.app+'))',
     '(Sprint in (291,292,293) AND project = "Scrum Lab") OR (cf[10700] = 16002 AND project = KanBan)',
     '(Sprint = 291 AND project = "Scrum Lab") OR (cf[10700] = 16002 AND project = KanBan)',
     '(Sprint = 292 AND project = "Scrum Lab") OR (cf[10700] = 16002 AND project = KanBan)',
@@ -152,7 +157,7 @@ app.post('/jql', authMiddleware, function(req, res){
                         })
                     }                                        
                 }
-                if (!timeestimate && _.indexOf(["Story"], issuetype) == -1) {
+                if (!timeestimate && _.indexOf(["Story"], issuetype) == -1 && "Closed" != issuestatus) {
                     if(issue.fields.assignee) {
                         finish.fouls.push({
                             issueLink: jiraDomain + '/browse/' + issue.key,
@@ -242,6 +247,7 @@ app.post('/jql', authMiddleware, function(req, res){
                                 issueLink: jiraDomain + '/browse/' + issue.key,
                                 issuesTypeIconUrl: _.get(issue, "fields.issuetype.iconUrl", ""),
                                 summary: issue.fields.summary,
+                                date: moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format("YYYY-MM-DD"),
                                 time: moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format("YYYY-MM-DD HH:mm"),
                                 timespent: timespent < 60 ? (timespent + ' minutes') : (timespent /60 + " hours")
                             })
@@ -353,7 +359,7 @@ app.post('/jql', authMiddleware, function(req, res){
             }
             finish.fouls = _.sortBy(finish.fouls, [function(o) { return o.user; }]);
             finish.mydata.logwork = _.sortBy(finish.mydata.logwork, [function(o) { return o.time; }]);
-            finish.logwork = _.sortBy(finish.logwork, [function(o) { return o.time; }]);
+            finish.logwork = _.orderBy(finish.logwork, ['date', 'name'], ['asc', 'desc']);
             res.send(finish);
         })
     }

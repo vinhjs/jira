@@ -163,8 +163,15 @@
                         text: 'LOGWORK ACTIVITIES'
                     },
                     zoomEnabled: true,
+                    elements: {
+                        line: {
+                            tension: 0.1, // disables bezier curves
+                        }
+                    },
                     tooltips: {
                         mode: 'index',
+                        titleFontSize: 14,
+                        bodyFontSize: 14,
                         itemSort: (a, b, data) => b.yLabel - a.yLabel,
                         callbacks: {
                             // Use the footer callback to display the sum of the items showing in the tooltip
@@ -427,13 +434,19 @@
                         record.mydata.logwork.forEach(function(wl){
                             keys += ',' + wl.key;
                         })
+                        var logworklen = record.logwork.length;
                         for (var i in record.logwork) {
                             var row = tableAlllogwork.insertRow(0);
-                            var cell1 = row.insertCell(0);
-                            var cell2 = row.insertCell(1);
-                            var cell3 = row.insertCell(2);
-                            var cell4 = row.insertCell(3);
-                            var cell5 = row.insertCell(4);
+                            if(record.logwork[i].name == session.name) {
+                                row.style.backgroundColor = '#CCE6FF';
+                            }
+                            var cell0 = row.insertCell(0);
+                            var cell1 = row.insertCell(1);                            
+                            var cell2 = row.insertCell(2);
+                            var cell3 = row.insertCell(3);
+                            var cell4 = row.insertCell(4);
+                            var cell5 = row.insertCell(5);
+                            cell0.innerHTML = logworklen - parseInt(i);
                             cell1.innerHTML = record.logwork[i].name;
                             cell2.innerHTML = '<img src="'+record.logwork[i].issuesTypeIconUrl+'"></img> <a target="_blank" rel="noopener noreferrer" href="'+record.logwork[i].issueLink+'">'+record.logwork[i].key+' - ' + _.truncate(record.logwork[i].summary, {"length": 100, "omission": "..."}) + '</a>';
                             cell3.innerHTML = record.logwork[i].time;
@@ -442,6 +455,9 @@
                         }
                         for (var i in record.fouls){
                             var row = tableNologwork.insertRow(0);
+                            if(record.fouls[i].user == session.name) {
+                                row.style.backgroundColor = '#CCE6FF';
+                            }
                             var cell1 = row.insertCell(0);
                             var cell2 = row.insertCell(1);
                             var cell3 = row.insertCell(2);
