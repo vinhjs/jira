@@ -165,6 +165,7 @@
                     zoomEnabled: true,
                     tooltips: {
                         mode: 'index',
+                        itemSort: (a, b, data) => b.yLabel - a.yLabel,
                         callbacks: {
                             // Use the footer callback to display the sum of the items showing in the tooltip
                             footer: function(tooltipItems, data) {
