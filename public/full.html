@@ -66,6 +66,7 @@
     </div>
 
     <div>List logwork within last 3 days</div>
+    <div><input type="text" id="worklogfilter_text"> <button id="worklogfilter_btn">Filter</button></div>
     <div style="width: 100%">
         <table id="tablealllogwork" style="width: 100%" border="1">
         </table>
@@ -267,6 +268,24 @@
                     animation: {
                         animateScale: true,
                         animateRotate: true
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                            //get the concerned dataset
+                            var dataset = data.datasets[tooltipItem.datasetIndex];
+                            //calculate the total of this data set
+                            var total = dataset.data.reduce(function(previousValue, currentValue, currentIndex, array) {
+                                return previousValue + currentValue;
+                            });
+                            //get the current items value
+                            var currentValue = dataset.data[tooltipItem.index];
+                            //calculate the precentage based on the total and current item, also this does a rough rounding to give a whole number
+                            var percentage = Math.floor(((currentValue/total) * 100)+0.5);
+
+                            return currentValue + "/" + total + " " + percentage + "%";
+                            }
+                        }
                     }
                 }
             };
@@ -285,7 +304,25 @@
                     animation: {
                         animateScale: true,
                         animateRotate: true
-                    }
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                            //get the concerned dataset
+                            var dataset = data.datasets[tooltipItem.datasetIndex];
+                            //calculate the total of this data set
+                            var total = dataset.data.reduce(function(previousValue, currentValue, currentIndex, array) {
+                                return previousValue + currentValue;
+                            });
+                            //get the current items value
+                            var currentValue = dataset.data[tooltipItem.index];
+                            //calculate the precentage based on the total and current item, also this does a rough rounding to give a whole number
+                            var percentage = Math.floor(((currentValue/total) * 100)+0.5);
+
+                            return currentValue + "/" + total + " " + percentage + "%";
+                            }
+                        }
+                    } 
                 }
             };
             var chart1 = new Chart(ctx1, config1);    
@@ -391,6 +428,55 @@
                 chart4.update();
                 chart5.update();
             });
+            function filterWorklog(){
+                
+            }
+            $('#worklogfilter_btn').keypress(function (e) {
+            if (e.which == 13) {
+                $('form#login').submit();
+                return false;    //<---- Add this line
+            }
+            });
+            document.getElementById('worklogfilter_btn').addEventListener('click', function() {
+                var txt =  document.getElementById('worklogfilter_text').value;
+                var tableAlllogwork = document.getElementById("tablealllogwork");
+                $("#tablealllogwork tr").remove(); 
+                var logworklen = all_data.logwork.length;
+                for (var i in all_data.logwork) {
+                    if(txt && txt == all_data.logwork[i].name) {  
+                        var row = tableAlllogwork.insertRow(0);                   
+                        var cell0 = row.insertCell(0);
+                        var cell1 = row.insertCell(1);                            
+                        var cell2 = row.insertCell(2);
+                        var cell3 = row.insertCell(3);
+                        var cell4 = row.insertCell(4);
+                        var cell5 = row.insertCell(5);
+                        cell0.innerHTML = logworklen - parseInt(i);
+                        cell1.innerHTML = all_data.logwork[i].name;
+                        cell2.innerHTML = '<img src="'+all_data.logwork[i].issuesTypeIconUrl+'"></img> <a target="_blank" rel="noopener noreferrer" href="'+all_data.logwork[i].issueLink+'">'+all_data.logwork[i].key+' - ' + _.truncate(all_data.logwork[i].summary, {"length": 100, "omission": "..."}) + '</a>';
+                        cell3.innerHTML = all_data.logwork[i].time;
+                        cell4.innerHTML = all_data.logwork[i].timespent;
+                        cell5.innerHTML = all_data.logwork[i].status;
+                    } else if(!txt) {
+                        var row = tableAlllogwork.insertRow(0);
+                        if (all_data.logwork[i].name == session.name) {
+                            row.style.backgroundColor = '#CCE6FF';
+                        }
+                        var cell0 = row.insertCell(0);
+                        var cell1 = row.insertCell(1);                            
+                        var cell2 = row.insertCell(2);
+                        var cell3 = row.insertCell(3);
+                        var cell4 = row.insertCell(4);
+                        var cell5 = row.insertCell(5);
+                        cell0.innerHTML = logworklen - parseInt(i);
+                        cell1.innerHTML = all_data.logwork[i].name;
+                        cell2.innerHTML = '<img src="'+all_data.logwork[i].issuesTypeIconUrl+'"></img> <a target="_blank" rel="noopener noreferrer" href="'+all_data.logwork[i].issueLink+'">'+all_data.logwork[i].key+' - ' + _.truncate(all_data.logwork[i].summary, {"length": 100, "omission": "..."}) + '</a>';
+                        cell3.innerHTML = all_data.logwork[i].time;
+                        cell4.innerHTML = all_data.logwork[i].timespent;
+                        cell5.innerHTML = all_data.logwork[i].status;
+                    }                    
+                }
+            })
             document.getElementById('process').addEventListener('click', function() {
                 document.getElementById('myreport2').hidden = true;
                 NProgress.start();
