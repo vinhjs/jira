@@ -232,6 +232,7 @@ app.post('/jql', authMiddleware, function(req, res){
                         if (worklog.name == finish.session.name) {
                             finish.mydata.logwork.push({
                                 key: issue.key,
+                                comment: worklog.comment,
                                 time: worklog.created,
                                 timespent: (worklog.timeSpentSeconds/60) + ' minutes'
                             });
@@ -247,6 +248,7 @@ app.post('/jql', authMiddleware, function(req, res){
                                 issueLink: jiraDomain + '/browse/' + issue.key,
                                 issuesTypeIconUrl: _.get(issue, "fields.issuetype.iconUrl", ""),
                                 summary: issue.fields.summary,
+                                comment: worklog.comment,
                                 date: moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format("YYYY-MM-DD"),
                                 time: moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format("YYYY-MM-DD HH:mm"),
                                 timespent: timespent < 60 ? (timespent + ' minutes') : (timespent /60 + " hours")

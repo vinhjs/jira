@@ -274,6 +274,7 @@
                             label: function(tooltipItem, data) {
                             //get the concerned dataset
                             var dataset = data.datasets[tooltipItem.datasetIndex];
+                            var label = data.labels[tooltipItem.index];
                             //calculate the total of this data set
                             var total = dataset.data.reduce(function(previousValue, currentValue, currentIndex, array) {
                                 return previousValue + currentValue;
@@ -283,7 +284,7 @@
                             //calculate the precentage based on the total and current item, also this does a rough rounding to give a whole number
                             var percentage = Math.floor(((currentValue/total) * 100)+0.5);
 
-                            return currentValue + "/" + total + " " + percentage + "%";
+                            return label + " " + currentValue + " / " + total + " " + percentage + "%";
                             }
                         }
                     }
@@ -310,6 +311,7 @@
                             label: function(tooltipItem, data) {
                             //get the concerned dataset
                             var dataset = data.datasets[tooltipItem.datasetIndex];
+                            var label = data.labels[tooltipItem.index];
                             //calculate the total of this data set
                             var total = dataset.data.reduce(function(previousValue, currentValue, currentIndex, array) {
                                 return previousValue + currentValue;
@@ -319,7 +321,7 @@
                             //calculate the precentage based on the total and current item, also this does a rough rounding to give a whole number
                             var percentage = Math.floor(((currentValue/total) * 100)+0.5);
 
-                            return currentValue + "/" + total + " " + percentage + "%";
+                            return label + " " + currentValue + " / " + total + " " + percentage + "%";
                             }
                         }
                     } 
@@ -451,12 +453,14 @@
                         var cell3 = row.insertCell(3);
                         var cell4 = row.insertCell(4);
                         var cell5 = row.insertCell(5);
+                        var cell6 = row.insertCell(6);
                         cell0.innerHTML = logworklen - parseInt(i);
                         cell1.innerHTML = all_data.logwork[i].name;
                         cell2.innerHTML = '<img src="'+all_data.logwork[i].issuesTypeIconUrl+'"></img> <a target="_blank" rel="noopener noreferrer" href="'+all_data.logwork[i].issueLink+'">'+all_data.logwork[i].key+' - ' + _.truncate(all_data.logwork[i].summary, {"length": 100, "omission": "..."}) + '</a>';
-                        cell3.innerHTML = all_data.logwork[i].time;
-                        cell4.innerHTML = all_data.logwork[i].timespent;
-                        cell5.innerHTML = all_data.logwork[i].status;
+                        cell3.innerHTML = all_data.logwork[i].comment;
+                        cell4.innerHTML = all_data.logwork[i].time;
+                        cell5.innerHTML = all_data.logwork[i].timespent;
+                        cell6.innerHTML = all_data.logwork[i].status;
                     } else if(!txt) {
                         var row = tableAlllogwork.insertRow(0);
                         if (all_data.logwork[i].name == session.name) {
@@ -468,12 +472,14 @@
                         var cell3 = row.insertCell(3);
                         var cell4 = row.insertCell(4);
                         var cell5 = row.insertCell(5);
+                        var cell6 = row.insertCell(6);
                         cell0.innerHTML = logworklen - parseInt(i);
                         cell1.innerHTML = all_data.logwork[i].name;
                         cell2.innerHTML = '<img src="'+all_data.logwork[i].issuesTypeIconUrl+'"></img> <a target="_blank" rel="noopener noreferrer" href="'+all_data.logwork[i].issueLink+'">'+all_data.logwork[i].key+' - ' + _.truncate(all_data.logwork[i].summary, {"length": 100, "omission": "..."}) + '</a>';
-                        cell3.innerHTML = all_data.logwork[i].time;
-                        cell4.innerHTML = all_data.logwork[i].timespent;
-                        cell5.innerHTML = all_data.logwork[i].status;
+                        cell3.innerHTML = all_data.logwork[i].comment;
+                        cell4.innerHTML = all_data.logwork[i].time;
+                        cell5.innerHTML = all_data.logwork[i].timespent;
+                        cell6.innerHTML = all_data.logwork[i].status;
                     }                    
                 }
             })
@@ -533,12 +539,14 @@
                             var cell3 = row.insertCell(3);
                             var cell4 = row.insertCell(4);
                             var cell5 = row.insertCell(5);
+                            var cell6 = row.insertCell(6);
                             cell0.innerHTML = logworklen - parseInt(i);
                             cell1.innerHTML = record.logwork[i].name;
                             cell2.innerHTML = '<img src="'+record.logwork[i].issuesTypeIconUrl+'"></img> <a target="_blank" rel="noopener noreferrer" href="'+record.logwork[i].issueLink+'">'+record.logwork[i].key+' - ' + _.truncate(record.logwork[i].summary, {"length": 100, "omission": "..."}) + '</a>';
-                            cell3.innerHTML = record.logwork[i].time;
-                            cell4.innerHTML = record.logwork[i].timespent;
-                            cell5.innerHTML = record.logwork[i].status;
+                            cell3.innerHTML = record.logwork[i].comment;
+                            cell4.innerHTML = record.logwork[i].time;
+                            cell5.innerHTML = record.logwork[i].timespent;
+                            cell6.innerHTML = record.logwork[i].status;
                         }
                         for (var i in record.fouls){
                             var row = tableNologwork.insertRow(0);

@@ -68,6 +68,7 @@ var getWorklog = function(updated, key, auth, cb){
                     function filter(el){
                         return {
                             name: el.updateAuthor.name,
+                            comment: el.comment,
                             created: el.created,
                             timeSpentSeconds: el.timeSpentSeconds
                         }
