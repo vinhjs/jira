@@ -55,10 +55,19 @@ var jqls = [
     '(Sprint = 291 AND project = "Scrum Lab") OR (cf[10700] = 16002 AND project = KanBan)',
     '(Sprint = 292 AND project = "Scrum Lab") OR (cf[10700] = 16002 AND project = KanBan)',
     '(Sprint = 293 AND project = "Scrum Lab") OR (cf[10700] = 16002 AND project = KanBan)'
-]
+];
+var whatsapp = require('./whatsapp');
+app.get('/test', function(req, res){
+    if (req.query.id){
+        return res.send({id:1});
+    }
+    console.log('======');
+    res.send({id:2});
+})
 app.post('/jql', authMiddleware, function(req, res){
     var username = Buffer.from(req.headers.authorization.split(" ")[1], 'base64').toString('ascii').split(":")[0];
-    jira_utils.addHistory(username, req.body.jql);    
+    jira_utils.addHistory(username, req.body.jql);   
+    whatsapp.send(username + " " + req.body.jql);
     var finish = {
         jiraDomain: jiraDomain,
         issuetypes: [],
