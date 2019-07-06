@@ -33,28 +33,27 @@ var basic = auth.basic({
     })
 });
 var authMiddleware = auth.connect(basic);
-var jiraDomain = 'https://issues.qup.vn';
 
+//Configs
+var jiraDomain = 'https://issues.qup.vn';
+var startDate = moment("2019-07-01T00:00:00", "YYYY-MM-DDTHH:mm:ss")
+//==End configs
 app.get('/histories', function(req, res){
     jira_utils.getHistory(function(error, data){
         res.send({error, data})
     });
 });
 var groups = {
-    server: '"vinh.tran","thuan.ho","chuong.vo","chuong.nguyen","hoang.nguyen","hai.ta","nhan.phan","nghia.huynht","vi.leh"',
-    web: '"nguyen.tran","vi.phantt","thuan.le","dat.huynh","dong.nguyen","dat.pham","hoang.dinh"',
-    app: '"duy.phan","hao.lek","dung.nguyen","hao.le","phuong.tran","nhuan.vu","duy.nguyen","quynh.hoang","hien.do"',
+    server: '"vinh.tran","thuan.ho","chuong.vo","chuong.nguyen","hoang.nguyen","nhan.phan","nghia.huynht","vi.leh"',
+    web: '"huy.nguyen","vi.phantt","thuan.le","dat.huynh","dat.pham","hoang.dinh","oanh.nguyentl"',
+    app: '"duy.phan","dung.nguyen","hao.le","phuong.tran","nhuan.vu","hien.do","tam.nguyen","khue.nguyennd","quyen.phanh"',
 }
 var jqls = [
     "project in (SL, KAN) AND updated >= -1w",
-    '(Sprint in (295,296,297) AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan)',
-    '(Sprint = 297 AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan AND assignee in ('+groups.server+'))',
-    '(Sprint = 296 AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan AND assignee in ('+groups.web+'))',
-    '(Sprint = 295 AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan AND assignee in ('+groups.app+'))',
-    '(Sprint in (291,292,293) AND project = "Scrum Lab") OR (cf[10700] = 16002 AND project = KanBan)',
-    '(Sprint = 291 AND project = "Scrum Lab") OR (cf[10700] = 16002 AND project = KanBan)',
-    '(Sprint = 292 AND project = "Scrum Lab") OR (cf[10700] = 16002 AND project = KanBan)',
-    '(Sprint = 293 AND project = "Scrum Lab") OR (cf[10700] = 16002 AND project = KanBan)'
+    '(Sprint in (319,320,321) AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan)',
+    '(Sprint = 321 AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan AND assignee in ('+groups.server+'))',
+    '(Sprint = 319 AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan AND assignee in ('+groups.web+'))',
+    '(Sprint = 320 AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan AND assignee in ('+groups.app+'))'
 ];
 var whatsapp = require('./whatsapp');
 app.get('/test', function(req, res){
@@ -238,62 +237,65 @@ app.post('/jql', authMiddleware, function(req, res){
                 count++;
                 if (rs && rs.length) {
                     rs.forEach(function(worklog){
-                        if (worklog.name == finish.session.name) {
-                            finish.mydata.logwork.push({
-                                key: issue.key,
-                                comment: worklog.comment,
-                                time: worklog.created,
-                                timespent: (worklog.timeSpentSeconds/60) + ' minutes'
-                            });
+                        var durationFromStartDate = moment.duration(startDate.diff(moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss"))).asDays();
+                        if (durationFromStartDate < 1) {
+                            if (worklog.name == finish.session.name) {
+                                finish.mydata.logwork.push({
+                                    key: issue.key,
+                                    comment: worklog.comment,
+                                    time: worklog.created,
+                                    timespent: (worklog.timeSpentSeconds/60) + ' minutes'
+                                });
+                            }
+                            var duration = moment.duration(new moment().diff(moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss")));
+                            var days = duration.asDays();
+                            if(days<=3) {
+                                var timespent = (worklog.timeSpentSeconds/60);
+                                finish.logwork.push({
+                                    name: worklog.name,
+                                    key: issue.key,
+                                    status: issuestatus,
+                                    issueLink: jiraDomain + '/browse/' + issue.key,
+                                    issuesTypeIconUrl: _.get(issue, "fields.issuetype.iconUrl", ""),
+                                    summary: issue.fields.summary,
+                                    comment: worklog.comment,
+                                    date: moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format("YYYY-MM-DD"),
+                                    time: moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format("YYYY-MM-DD HH:mm"),
+                                    timespent: timespent < 60 ? (timespent + ' minutes') : (timespent /60 + " hours")
+                                })
+                            }                        
+                            var dateCreated = new moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format('YYYY-MM-DD');
+                            finish.users[worklog.name] = finish.users[worklog.name] || {total: 0};
+                            finish.users[worklog.name].total += worklog.timeSpentSeconds;
+                            finish.users[worklog.name][issuetype] = finish.users[worklog.name][issuetype] || 0;
+                            finish.users[worklog.name][issuetype] += worklog.timeSpentSeconds;
+                            
+                            //barchart         
+                            finish.barChartLogworkData.labels.push(worklog.name);
+                            var users = _.uniq(finish.barChartLogworkData.labels);                                    
+                            finish.barChartLogworkData.labels = users;
+                            var labelIndex = _.indexOf(users, worklog.name);
+                            var datasetIndex = _.findIndex(finish.barChartLogworkData.datasets, function(o) { return o.label == issuetype; });
+                            if (datasetIndex == -1) {
+                                finish.barChartLogworkData.datasets.push({
+                                    label: issuetype,
+                                    stack: 'Stack 0',
+                                    backgroundColor: colors.issuetypes[finish.barChartLogworkData.datasets.length].code,
+                                    data: []
+                                });  
+                                datasetIndex =  _.findIndex(finish.barChartLogworkData.datasets, function(o) { return o.label == issuetype; });                                    
+                            }
+                            if(!finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex]) {
+                                finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex] = 0;
+                            }
+                            finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex] += worklog.timeSpentSeconds;
+    
+                            finish.dates[dateCreated] = finish.dates[dateCreated] || {};
+                            finish.dates[dateCreated][worklog.name] = finish.dates[dateCreated][worklog.name] || {total: 0};
+                            finish.dates[dateCreated][worklog.name].total += worklog.timeSpentSeconds;
+                            finish.dates[dateCreated][worklog.name][issuetype] = finish.dates[dateCreated][worklog.name][issuetype] || 0;
+                            finish.dates[dateCreated][worklog.name][issuetype] += worklog.timeSpentSeconds;
                         }
-                        var duration = moment.duration(new moment().diff(moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss")));
-                        var days = duration.asDays();
-                        if(days<=3) {
-                            var timespent = (worklog.timeSpentSeconds/60);
-                            finish.logwork.push({
-                                name: worklog.name,
-                                key: issue.key,
-                                status: issuestatus,
-                                issueLink: jiraDomain + '/browse/' + issue.key,
-                                issuesTypeIconUrl: _.get(issue, "fields.issuetype.iconUrl", ""),
-                                summary: issue.fields.summary,
-                                comment: worklog.comment,
-                                date: moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format("YYYY-MM-DD"),
-                                time: moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format("YYYY-MM-DD HH:mm"),
-                                timespent: timespent < 60 ? (timespent + ' minutes') : (timespent /60 + " hours")
-                            })
-                        }                        
-                        var dateCreated = new moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format('YYYY-MM-DD');
-                        finish.users[worklog.name] = finish.users[worklog.name] || {total: 0};
-                        finish.users[worklog.name].total += worklog.timeSpentSeconds;
-                        finish.users[worklog.name][issuetype] = finish.users[worklog.name][issuetype] || 0;
-                        finish.users[worklog.name][issuetype] += worklog.timeSpentSeconds;
-                        
-                        //barchart         
-                        finish.barChartLogworkData.labels.push(worklog.name);
-                        var users = _.uniq(finish.barChartLogworkData.labels);                                    
-                        finish.barChartLogworkData.labels = users;
-                        var labelIndex = _.indexOf(users, worklog.name);
-                        var datasetIndex = _.findIndex(finish.barChartLogworkData.datasets, function(o) { return o.label == issuetype; });
-                        if (datasetIndex == -1) {
-                            finish.barChartLogworkData.datasets.push({
-                                label: issuetype,
-                                stack: 'Stack 0',
-                                backgroundColor: colors.issuetypes[finish.barChartLogworkData.datasets.length].code,
-                                data: []
-                            });  
-                            datasetIndex =  _.findIndex(finish.barChartLogworkData.datasets, function(o) { return o.label == issuetype; });                                    
-                        }
-                        if(!finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex]) {
-                            finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex] = 0;
-                        }
-                        finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex] += worklog.timeSpentSeconds;
-
-                        finish.dates[dateCreated] = finish.dates[dateCreated] || {};
-                        finish.dates[dateCreated][worklog.name] = finish.dates[dateCreated][worklog.name] || {total: 0};
-                        finish.dates[dateCreated][worklog.name].total += worklog.timeSpentSeconds;
-                        finish.dates[dateCreated][worklog.name][issuetype] = finish.dates[dateCreated][worklog.name][issuetype] || 0;
-                        finish.dates[dateCreated][worklog.name][issuetype] += worklog.timeSpentSeconds;
                     })
                 }
                 // console.log(issue.key + ' ' + count +"/"+ total)

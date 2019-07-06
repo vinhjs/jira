@@ -39,19 +39,19 @@ module.exports = {
         'anh.bui': 'rgb(138, 79, 125)',
         'dung.nguyen': 'rgb(0, 187, 239)',
         'tuan.nguyena': 'rgb(101, 72, 112)',
-        'hao.lek': 'rgb(130, 24, 48)',
+        'tam.nguyen': 'rgb(130, 24, 48)',
         'an.nguyenp': 'rgb(247, 161, 90)',
         'hien.do': 'rgb(193, 106, 78)',
         'phuong.tran': 'rgb(96, 146, 125)',
         'vinh.tran': 'rgb(141, 143, 183)',
         'chuong.nguyen': 'rgb(249, 149, 198)',
-        'duy.nguyen': 'rgb(17, 39, 11)',
+        'quyen.phanh': 'rgb(17, 39, 11)',
         'nhan.phan': 'rgb(65, 140, 44)',
         'vi.leh': 'rgb(73, 35, 35)',
         'thuan.ho': 'rgb(52, 61, 36)',
         'hoang.nguyen': 'rgb(40, 63, 56)',
         'chuong.vo': 'rgb(10, 36, 99)',
-        'nhan.nguyentt': 'rgb(226, 201, 127)',
-        'hai.ta': 'rgb(86, 71, 27)'
+        'khue.nguyennd': 'rgb(226, 201, 127)',
+        'oanh.nguyentl': 'rgb(86, 71, 27)'
     }
 }
