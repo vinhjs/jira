@@ -48,6 +48,16 @@
         
     </div>
     <div id="totalpoint"></div>
+    <div style="width: 100%" >
+        <table id="leaderboard" style="width: 100%" border="1">
+            <tr>
+                <th style="width: 20px">No.</th>
+                <th style="width: 50px">User</th>
+                <th>Points</th>
+                <th>Note</th>
+            </tr>            
+        </table>
+    </div>
     <div style="width: 100%">
 		<canvas id="canvas2"></canvas>
     <div>
@@ -516,14 +526,32 @@
                         chart5.data = record.doughnutChartTypesData;
                         chart5.update();
                         var tableNologwork = document.getElementById("noLogwork");
+                        var tableLeaderboard = document.getElementById("leaderboard");
                         var tableAlllogwork = document.getElementById("tablealllogwork");
                         $("#noLogwork tr").remove(); 
                         $("#tablealllogwork tr").remove(); 
+                        $("#leaderboard tr").remove(); 
 
                         record.mydata.logwork.forEach(function(wl){
                             keys += ',' + wl.key;
                         })
                         var logworklen = record.logwork.length;
+                        var leaderboardlen = record.leaderboard.length;
+
+                        for (var i in record.leaderboard){
+                            var row = tableLeaderboard.insertRow(0);
+                            if(record.leaderboard[i].username == session.name) {
+                                row.style.backgroundColor = '#CCE6FF';
+                            }
+                            var cell1 = row.insertCell(0);
+                            var cell2 = row.insertCell(1);
+                            var cell3 = row.insertCell(2);
+                            var cell4 = row.insertCell(3);
+                            cell1.innerHTML = leaderboardlen - parseInt(i);
+                            cell2.innerHTML = record.leaderboard[i].username;
+                            cell3.innerHTML = record.leaderboard[i].point
+                            cell4.innerHTML = '';
+                        }
                         for (var i in record.logwork) {
                             var row = tableAlllogwork.insertRow(0);
                             if(record.logwork[i].name == session.name) {
@@ -558,7 +586,7 @@
                             cell3.innerHTML = '<img src="'+record.fouls[i].issuesTypeIconUrl+'"></img> <a target="_blank" rel="noopener noreferrer" href="'+record.fouls[i].issueLink+'">'+record.fouls[i].key+' - ' + _.truncate(record.fouls[i].summary, {"length": 100, "omission": "..."}) + '</a>';
                             cell4.innerHTML = record.fouls[i].msg;
                         }
-                    
+                        
                         NProgress.done();          
                     })               
                 });

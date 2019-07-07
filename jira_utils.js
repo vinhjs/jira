@@ -2,6 +2,7 @@ var request = require('request');
 var _ = require('lodash');
 var async = require('async');
 var moment = require("moment");
+var gamification = require('./gamification');
 
 const low = require('lowdb')
 const FileSync = require('lowdb/adapters/FileSync')
@@ -48,7 +49,7 @@ var searchJQL = function(startAt, jql, auth, session, cb){
         cb(err, rs);
     })   
 }
-var getWorklog = function(updated, key, auth, cb){
+var getWorklog = function(startDate, updated, key, auth, cb){
     var url = 'https://issues.qup.vn/rest/api/2/issue/'+key+'/worklog';
     getCacheDb(key, updated, function(err, data) {
         if (!err && data) {
@@ -65,15 +66,20 @@ var getWorklog = function(updated, key, auth, cb){
             }, function(error, response, result){
                 console.log(url + " : " + (new Date() - date));
                 if (result && result.total) {
-                    function filter(el){
-                        return {
-                            name: el.updateAuthor.name,
-                            comment: el.comment,
-                            created: el.created,
-                            timeSpentSeconds: el.timeSpentSeconds
+                    var rs = _.reduce(result.worklogs, function (acc, el) {
+                        var durationFromStartDate = moment.duration(startDate.diff(moment(el.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss"))).asDays();
+                        if (durationFromStartDate < 1) {
+                            gamification.logwork(el.id, el.updateAuthor.name, el.timeSpentSeconds/60)
+                            acc.push({
+                                id: el.id,
+                                name: el.updateAuthor.name,
+                                comment: el.comment,
+                                created: el.created,
+                                timeSpentSeconds: el.timeSpentSeconds
+                            });
                         }
-                    }
-                    var rs = _.map(result.worklogs, filter);
+                        return acc;
+                      }, []);
                     setCacheDb(key, rs, updated, function(err, ok){})
                     cb(null, rs);
                 } else {
