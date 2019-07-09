@@ -38,7 +38,7 @@
     <div style="width: 100%">
             Filter:
         <select id="selectjql">
-            <option value=0>Updated within the last 1 week (Scrum, Kanban)</option>
+            <option value=0>Updated from July 01 2019 (Scrum, Kanban)</option>
             <option value=1 selected>4.6.34 All</option>
             <option value=2>4.6.34 Server</option>
             <option value=3>4.6.34 Web</option>
@@ -47,7 +47,8 @@
         <button id="process">Process</button>
         
     </div>
-    <div id="totalpoint"></div>
+    <!-- <div id="totalpoint"></div> -->
+    <div><h3>Leaderboard</h3></div>
     <div style="width: 100%" >
         <table id="leaderboard" style="width: 100%" border="1">
             <tr>
@@ -498,7 +499,7 @@
                         console.log(record);
                         all_data = record;
                         session = record.session;
-                        document.getElementById('totalpoint').innerText = "Total points: " + record.point;
+                        // document.getElementById('totalpoint').innerText = "Total points: " + record.point;
                         document.getElementById('myreport2').innerText = record.session.name;
                         document.getElementById('myreport2').hidden = false;
                         var keys = '';   
@@ -550,7 +551,7 @@
                             cell1.innerHTML = leaderboardlen - parseInt(i);
                             cell2.innerHTML = record.leaderboard[i].username;
                             cell3.innerHTML = record.leaderboard[i].point
-                            cell4.innerHTML = '';
+                            cell4.innerHTML = '<a target="_blank" rel="noopener noreferrer" href="/activities?username='+record.leaderboard[i].username+'">activities</a>';
                         }
                         for (var i in record.logwork) {
                             var row = tableAlllogwork.insertRow(0);

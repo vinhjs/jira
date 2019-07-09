@@ -1,10 +1,14 @@
 var redisClient = require('./config/redis').redisClient;
 var _ = require('lodash');
-function logwork(logworkId, username, point){
+function logwork(issue, logworkId, username, point, created){
     redisClient.sadd('QUP:logworkId', logworkId, function(err, ok){
         if (ok){
-            console.log(new Date().toISOString(), "logwork", logworkId, username, point);
+            var now = new Date();
+            console.log(now.toISOString(), "logwork", logworkId, username, point);
             redisClient.zincrby('QUP:leaderboard', point, username);
+            var score = new Date(created).getTime();
+            redisClient.zadd('QUP:activities_all', score, JSON.stringify({time: created, point: point, action: "logwork", issue: issue, id: logworkId, msg: created + ": " +username + " earned " + point + " points, logwork for issues: " + issue}))
+            redisClient.zadd('QUP:activities:' + username, score, JSON.stringify({time: created, point: point, action: "logwork", issue: issue, id: logworkId, msg: created + ": You earned " + point + " points, logwork for issues: " + issue}))
         }
     })
 }
@@ -24,7 +28,20 @@ function getLeaderBoard(cb){
         cb(err, rs);
     })
 }
+function getActivities(username, cb){
+    if (username) {
+        redisClient.ZRANGE('QUP:activities:' + username, 0, -1, function(err, list){
+            cb(err, list);
+        })
+    } else {
+        redisClient.ZRANGE('QUP:activities_all', 0, -1, function(err, list){
+            cb(err, list)
+        })
+    }
+    
+}
 module.exports = {
     logwork,
-    getLeaderBoard
+    getLeaderBoard,
+    getActivities
 }

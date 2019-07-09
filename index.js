@@ -50,11 +50,11 @@ var groups = {
     app: '"duy.phan","dung.nguyen","hao.le","phuong.tran","nhuan.vu","hien.do","tam.nguyen","khue.nguyennd","quyen.phanh"',
 }
 var jqls = [
-    "project in (SL, KAN) AND updated >= -1w",
-    '(Sprint in (319,320,321) AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan)',
-    '(Sprint = 321 AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan AND assignee in ('+groups.server+'))',
-    '(Sprint = 319 AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan AND assignee in ('+groups.web+'))',
-    '(Sprint = 320 AND project = "Scrum Lab") OR (cf[10700] = 16003 AND project = KanBan AND assignee in ('+groups.app+'))'
+    "project in (SL, KAN)",
+    'Sprint in (319,320,321) AND project = "Scrum Lab"',
+    'Sprint = 321 AND project = "Scrum Lab"',
+    'Sprint = 319 AND project = "Scrum Lab"',
+    'Sprint = 320 AND project = "Scrum Lab"'
 ];
 var whatsapp = require('./whatsapp');
 app.get('/test', function(req, res){
@@ -104,6 +104,10 @@ app.post('/jql', authMiddleware, function(req, res){
         console.log(ex);
     }
     var jql= jqls[jqlIndex] || "project in (SL, KAN) AND updated >= -2w";
+    if (jqlIndex == 0) {
+        jql = "project in (SL, KAN)";
+        jql+=" AND updated >= 2019-07-01 AND updated <= " + new moment().add(1, 'd').format("YYYY-MM-DD");
+    }
     var totalResult = [];
     var total = 0;
     var count = 0;
@@ -381,6 +385,7 @@ app.post('/jql', authMiddleware, function(req, res){
 app.get('/', function(req, res){
     res.sendFile(__dirname + '/public/full.html');
 })
+require('./router/activities')(app);
 const port = process.env.PORT || 3001;
 http.listen(port, function () {
     console.log('App is running on ' + port);

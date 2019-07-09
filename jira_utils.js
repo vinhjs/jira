@@ -69,7 +69,7 @@ var getWorklog = function(startDate, updated, key, auth, cb){
                     var rs = _.reduce(result.worklogs, function (acc, el) {
                         var durationFromStartDate = moment.duration(startDate.diff(moment(el.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss"))).asDays();
                         if (durationFromStartDate < 1) {
-                            gamification.logwork(el.id, el.updateAuthor.name, el.timeSpentSeconds/60)
+                            gamification.logwork(key, el.id, el.updateAuthor.name, el.timeSpentSeconds/60, el.created)
                             acc.push({
                                 id: el.id,
                                 name: el.updateAuthor.name,

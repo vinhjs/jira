@@ -9,6 +9,10 @@ yarn-error.log*
 
 #database config
 config/default.json
+
+#database
+db.json
+
 # Runtime data
 pids
 *.pid
