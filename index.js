@@ -50,11 +50,11 @@ var groups = {
     app: '"duy.phan","dung.nguyen","hao.le","phuong.tran","nhuan.vu","hien.do","tam.nguyen","khue.nguyennd","quyen.phanh"',
 }
 var jqls = [
-    "project in (SL, KAN)",
+    "project in (SL, KAN, QS, QQA)",
     'Sprint in (319,320,321) AND project = "Scrum Lab"',
-    'Sprint = 321 AND project = "Scrum Lab"',
-    'Sprint = 319 AND project = "Scrum Lab"',
-    'Sprint = 320 AND project = "Scrum Lab"'
+    '(Sprint = 321 AND project = "Scrum Lab") OR (project = "QA Operations" AND assignee in ('+groups.server+') AND updated >= 2019-07-01)',
+    '(Sprint = 319 AND project = "Scrum Lab") OR (project = "QA Operations" AND assignee in ('+groups.web+') AND updated >= 2019-07-01)',
+    '(Sprint = 320 AND project = "Scrum Lab") OR (project = "QA Operations" AND assignee in ('+groups.app+') AND updated >= 2019-07-01)'
 ];
 var whatsapp = require('./whatsapp');
 app.get('/test', function(req, res){
@@ -103,9 +103,9 @@ app.post('/jql', authMiddleware, function(req, res){
     } catch (ex) {
         console.log(ex);
     }
-    var jql= jqls[jqlIndex] || "project in (SL, KAN) AND updated >= -2w";
+    var jql= jqls[jqlIndex] || "project in (SL, KAN, QS, QQA) AND updated >= -2w";
     if (jqlIndex == 0) {
-        jql = "project in (SL, KAN)";
+        jql = "project in (SL, KAN, QS, QQA)";
         jql+=" AND updated >= 2019-07-01 AND updated <= " + new moment().add(1, 'd').format("YYYY-MM-DD");
     }
     var totalResult = [];
