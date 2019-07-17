@@ -1,14 +1,14 @@
 var redisClient = require('./config/redis').redisClient;
 var _ = require('lodash');
-function logwork(issue, logworkId, username, point, created){
+function logwork(issue, logworkId, username, point, started){
     redisClient.sadd('QUP:logworkId', logworkId, function(err, ok){
         if (ok){
             var now = new Date();
             console.log(now.toISOString(), "logwork", logworkId, username, point);
             redisClient.zincrby('QUP:leaderboard', point, username);
-            var score = new Date(created).getTime();
-            redisClient.zadd('QUP:activities_all', score, JSON.stringify({time: created, point: point, action: "logwork", issue: issue, id: logworkId, msg: created + ": " +username + " earned " + point + " points, logwork for issues: " + issue}))
-            redisClient.zadd('QUP:activities:' + username, score, JSON.stringify({time: created, point: point, action: "logwork", issue: issue, id: logworkId, msg: created + ": You earned " + point + " points, logwork for issues: " + issue}))
+            var score = new Date(started).getTime();
+            redisClient.zadd('QUP:activities_all', score, JSON.stringify({time: started, point: point, action: "logwork", issue: issue, id: logworkId, msg: started + ": " +username + " earned " + point + " points, logwork for issues: " + issue}))
+            redisClient.zadd('QUP:activities:' + username, score, JSON.stringify({time: started, point: point, action: "logwork", issue: issue, id: logworkId, msg: started + ": You earned " + point + " points, logwork for issues: " + issue}))
         }
     })
 }

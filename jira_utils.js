@@ -67,14 +67,14 @@ var getWorklog = function(startDate, updated, key, auth, cb){
                 console.log(url + " : " + (new Date() - date));
                 if (result && result.total) {
                     var rs = _.reduce(result.worklogs, function (acc, el) {
-                        var durationFromStartDate = moment.duration(startDate.diff(moment(el.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss"))).asDays();
+                        var durationFromStartDate = moment.duration(startDate.diff(moment(el.started.slice(0,19), "YYYY-MM-DDTHH:mm:ss"))).asDays();
                         if (durationFromStartDate < 1) {
-                            gamification.logwork(key, el.id, el.updateAuthor.name, el.timeSpentSeconds/60, el.created)
+                            gamification.logwork(key, el.id, el.updateAuthor.name, el.timeSpentSeconds/60, el.started)
                             acc.push({
                                 id: el.id,
                                 name: el.updateAuthor.name,
                                 comment: el.comment,
-                                created: el.created,
+                                started: el.started,
                                 timeSpentSeconds: el.timeSpentSeconds
                             });
                         }

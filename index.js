@@ -246,11 +246,11 @@ app.post('/jql', authMiddleware, function(req, res){
                             finish.mydata.logwork.push({
                                 key: issue.key,
                                 comment: worklog.comment,
-                                time: worklog.created,
+                                time: worklog.started,
                                 timespent: (worklog.timeSpentSeconds/60) + ' minutes'
                             });
                         }
-                        var duration = moment.duration(new moment().diff(moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss")));
+                        var duration = moment.duration(new moment().diff(moment(worklog.started.slice(0,19), "YYYY-MM-DDTHH:mm:ss")));
                         var days = duration.asDays();
                         if(days<=3) {
                             var timespent = (worklog.timeSpentSeconds/60);
@@ -262,12 +262,12 @@ app.post('/jql', authMiddleware, function(req, res){
                                 issuesTypeIconUrl: _.get(issue, "fields.issuetype.iconUrl", ""),
                                 summary: issue.fields.summary,
                                 comment: worklog.comment,
-                                date: moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format("YYYY-MM-DD"),
-                                time: moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format("YYYY-MM-DD HH:mm"),
+                                date: moment(worklog.started.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format("YYYY-MM-DD"),
+                                time: moment(worklog.started.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format("YYYY-MM-DD HH:mm"),
                                 timespent: timespent < 60 ? (timespent + ' minutes') : (timespent /60 + " hours")
                             })
                         }                        
-                        var dateCreated = new moment(worklog.created.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format('YYYY-MM-DD');
+                        var dateStarted = new moment(worklog.started.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format('YYYY-MM-DD');
                         finish.users[worklog.name] = finish.users[worklog.name] || {total: 0};
                         finish.users[worklog.name].total += worklog.timeSpentSeconds;
                         finish.users[worklog.name][issuetype] = finish.users[worklog.name][issuetype] || 0;
@@ -293,11 +293,11 @@ app.post('/jql', authMiddleware, function(req, res){
                         }
                         finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex] += worklog.timeSpentSeconds;
 
-                        finish.dates[dateCreated] = finish.dates[dateCreated] || {};
-                        finish.dates[dateCreated][worklog.name] = finish.dates[dateCreated][worklog.name] || {total: 0};
-                        finish.dates[dateCreated][worklog.name].total += worklog.timeSpentSeconds;
-                        finish.dates[dateCreated][worklog.name][issuetype] = finish.dates[dateCreated][worklog.name][issuetype] || 0;
-                        finish.dates[dateCreated][worklog.name][issuetype] += worklog.timeSpentSeconds;
+                        finish.dates[dateStarted] = finish.dates[dateStarted] || {};
+                        finish.dates[dateStarted][worklog.name] = finish.dates[dateStarted][worklog.name] || {total: 0};
+                        finish.dates[dateStarted][worklog.name].total += worklog.timeSpentSeconds;
+                        finish.dates[dateStarted][worklog.name][issuetype] = finish.dates[dateStarted][worklog.name][issuetype] || 0;
+                        finish.dates[dateStarted][worklog.name][issuetype] += worklog.timeSpentSeconds;
                     })
                 }
                 // console.log(issue.key + ' ' + count +"/"+ total)

@@ -21,6 +21,7 @@ module.exports = {
         { name: 'grey', code: 'rgb(201, 203, 207)'},
         { name: '', code: 'rgb(249, 149, 198)'},
         { name: '', code: 'rgb(17, 39, 11)'},
+        { name: '', code: 'rgb(255,51,119)'}
     ],
     users: {
         'nguyen.tran': 'rgb(255, 99, 132)',
