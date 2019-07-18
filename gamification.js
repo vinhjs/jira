@@ -40,8 +40,20 @@ function getActivities(username, cb){
     }
     
 }
+function checkStatus(status, assignee, project, key){
+    if (project == "SL" && status == "Done") {
+        // console.log('checkStatus', status, assignee, project, key)
+    }
+    if (project == "KAN" && status == "Resolved") {
+        console.log('checkStatus', status, assignee, project, key)
+    }
+    if (project == "QQA" && status == "Closed") {
+        console.log('checkStatus', status, assignee, project, key)
+    }
+}
 module.exports = {
     logwork,
     getLeaderBoard,
-    getActivities
+    getActivities,
+    checkStatus
 }

@@ -151,6 +151,7 @@ app.post('/jql', authMiddleware, function(req, res){
             var assigneeName = _.get(issue, 'fields.assignee.name', "");
             finish.issuetypes = _.uniq(finish.issuetypes.push(issuetype));
             var components = _.get(issue, "fields.components", []);
+            var project = _.get(issue, "fields.project.key", '');
             var timeestimate = _.get(issue, 'fields.timeestimate', 0);
             if (timeestimate == 0) {
                 timeestimate = _.get(issue, 'fields.timeoriginalestimate', 0);
@@ -197,18 +198,20 @@ app.post('/jql', authMiddleware, function(req, res){
                     } 
                 }
                 components.forEach(function(component){
-                    if (finish.components[component.name]) {
-                        finish.components[component.name].total++;
-                        if (finish.components[component.name][issuestatus]) {
-                            finish.components[component.name][issuestatus]++;
+                    if (project == "SL" || project == "KAN") {
+                        if (finish.components[component.name]) {
+                            finish.components[component.name].total++;
+                            if (finish.components[component.name][issuestatus]) {
+                                finish.components[component.name][issuestatus]++;
+                            } else {
+                                finish.components[component.name][issuestatus] = 1;
+                            }
                         } else {
+                            finish.components[component.name] = {
+                                total: 1
+                            }
                             finish.components[component.name][issuestatus] = 1;
                         }
-                    } else {
-                        finish.components[component.name] = {
-                            total: 1
-                        }
-                        finish.components[component.name][issuestatus] = 1;
                     }
                 });
             }
@@ -237,6 +240,7 @@ app.post('/jql', authMiddleware, function(req, res){
             } else {
                 finish.issues.types[issuetype] = 1;
             }
+            gamification.checkStatus(issuestatus, assigneeName, project, issue.key)
             //get log work info
             jira_utils.getWorklog(startDate, issue.fields.updated, issue.key, req.headers.authorization, function(err, rs){
                 count++;
