@@ -25,7 +25,7 @@ var searchJQL = function(startAt, jql, auth, session, cb){
                     "Authorization": auth
                 }
             }, function(error, response, result){
-                console.log(url + " : " + (new Date() - date));
+                console.log(new Date().toISOString(), url + " : " + (new Date() - date));
                 cback(error, result);
             })
         },
@@ -58,13 +58,13 @@ var getWorklog = function(startDate, updated, key, auth, cb){
             var date = new Date();
             request({
                 url: url,
-                timeout: 10000,
+                timeout: 20000,
                 json: true,
                 headers: {
                     "Authorization": auth
                 }
             }, function(error, response, result){
-                console.log(url + " : " + (new Date() - date));
+                console.log(new Date().toISOString(), url + " : " + (new Date() - date));
                 if (result && result.total) {
                     var rs = _.reduce(result.worklogs, function (acc, el) {
                         var durationFromStartDate = moment.duration(startDate.diff(moment(el.started.slice(0,19), "YYYY-MM-DDTHH:mm:ss"))).asDays();
@@ -90,6 +90,25 @@ var getWorklog = function(startDate, updated, key, auth, cb){
         }
     });   
 };
+function getComponent(key, auth, cb){
+    var date = new Date();
+    var url = 'https://issues.qup.vn/rest/api/2/issue/'+key+'?&fields=components';
+    request({
+        url: url,
+        timeout: 20000,
+        json: true,
+        headers: {
+            "Authorization": auth
+        }
+    }, function(error, response, result){
+        // console.log(new Date().toISOString(), url + " : " + (new Date() - date));
+        if (result) {
+            cb(null, _.map(_.get(result, 'fields.components', []), 'name'));
+        } else {
+            cb("notfound", [])
+        }
+    });
+}
 function getCacheDb(key, updated, cb){
     const log = db.get('logwork.'+key).value();
     if (log && log.data) {
@@ -133,5 +152,6 @@ module.exports = {
     getWorklog,
     searchJQL,
     addHistory,
-    getHistory
+    getHistory,
+    getComponent
 }

@@ -50,11 +50,11 @@ var groups = {
     app: '"duy.phan","dung.nguyen","hao.le","phuong.tran","nhuan.vu","hien.do","tam.nguyen","khue.nguyennd","quyen.phanh"',
 }
 var jqls = [
-    "project in (SL, KAN, QS, QQA)",
-    'Sprint in (319,320,321) AND project = "Scrum Lab"',
-    '(Sprint = 321 AND project = "Scrum Lab") OR (project = "QA Operations" AND assignee in ('+groups.server+') AND updated >= 2019-07-01)',
-    '(Sprint = 319 AND project = "Scrum Lab") OR (project = "QA Operations" AND assignee in ('+groups.web+') AND updated >= 2019-07-01)',
-    '(Sprint = 320 AND project = "Scrum Lab") OR (project = "QA Operations" AND assignee in ('+groups.app+') AND updated >= 2019-07-01)'
+    "project in (SL, KAN, QS, QQA)&expand=changelog",
+    'Sprint in (319,320,321) AND project = "Scrum Lab"&expand=changelog',
+    '(Sprint = 321 AND project = "Scrum Lab") OR (project = "QA Operations" AND assignee in ('+groups.server+') AND updated >= 2019-07-01)&expand=changelog',
+    '(Sprint = 319 AND project = "Scrum Lab") OR (project = "QA Operations" AND assignee in ('+groups.web+') AND updated >= 2019-07-01)&expand=changelog',
+    '(Sprint = 320 AND project = "Scrum Lab") OR (project = "QA Operations" AND assignee in ('+groups.app+') AND updated >= 2019-07-01)&expand=changelog'
 ];
 var whatsapp = require('./whatsapp');
 app.get('/test', function(req, res){
@@ -103,10 +103,10 @@ app.post('/jql', authMiddleware, function(req, res){
     } catch (ex) {
         console.log(ex);
     }
-    var jql= jqls[jqlIndex] || "project in (SL, KAN, QS, QQA) AND updated >= -2w";
+    var jql= jqls[jqlIndex] || "project in (SL, KAN, QS, QQA) AND updated >= -2w&expand=changelog";
     if (jqlIndex == 0) {
         jql = "project in (SL, KAN, QS, QQA)";
-        jql+=" AND updated >= 2019-07-01 AND updated <= " + new moment().add(1, 'd').format("YYYY-MM-DD");
+        jql+=" AND updated >= 2019-07-01&expand=changelog";
     }
     var totalResult = [];
     var total = 0;
@@ -153,10 +153,26 @@ app.post('/jql', authMiddleware, function(req, res){
             var components = _.get(issue, "fields.components", []);
             var project = _.get(issue, "fields.project.key", '');
             var timeestimate = _.get(issue, 'fields.timeestimate', 0);
+            var duedate = _.get(issue, 'fields.duedate', null);
             if (timeestimate == 0) {
                 timeestimate = _.get(issue, 'fields.timeoriginalestimate', 0);
             }
+            
             if (issue.fields.subtasks.length == 0) {
+                checkChangelog(function(){
+
+                })
+                if (!duedate && assigneeName && project == "SL" && _.indexOf(["Open", "In Progress"], issuestatus) > -1){
+                    finish.fouls.push({
+                        issueLink: jiraDomain + '/browse/' + issue.key,
+                        issuesTypeIconUrl: _.get(issue, "fields.issuetype.iconUrl", ""),
+                        summary:  issue.fields.summary,
+                        key:  issue.key,
+                        user: assigneeName,
+                        avatar: issue.fields.assignee.avatarUrls["24x24"],
+                        msg: "No duedate"
+                    })
+                }
                 var timespent = _.get(issue, "fields.timespent", 0);
                 if (!timespent && _.indexOf(["Story"], issuetype) == -1 && _.indexOf(["Open", "Closed", "In Progress"], issuestatus) == -1) {
                     if(issue.fields.assignee) {
@@ -171,7 +187,7 @@ app.post('/jql', authMiddleware, function(req, res){
                         })
                     }                                        
                 }
-                if (!timeestimate && _.indexOf(["Story"], issuetype) == -1 && "Closed" != issuestatus) {
+                if (!timeestimate && _.indexOf(["Story"], issuetype) == -1 && project == "SL" && _.indexOf(["Open", "In Progress"], issuestatus) > -1){
                     if(issue.fields.assignee) {
                         finish.fouls.push({
                             issueLink: jiraDomain + '/browse/' + issue.key,
@@ -240,71 +256,142 @@ app.post('/jql', authMiddleware, function(req, res){
             } else {
                 finish.issues.types[issuetype] = 1;
             }
-            gamification.checkStatus(issuestatus, assigneeName, project, issue.key)
-            //get log work info
-            jira_utils.getWorklog(startDate, issue.fields.updated, issue.key, req.headers.authorization, function(err, rs){
-                count++;
-                if (rs && rs.length) {
-                    rs.forEach(function(worklog){
-                        if (worklog.name == finish.session.name) {
-                            finish.mydata.logwork.push({
-                                key: issue.key,
-                                comment: worklog.comment,
-                                time: worklog.started,
-                                timespent: (worklog.timeSpentSeconds/60) + ' minutes'
-                            });
-                        }
-                        var duration = moment.duration(new moment().diff(moment(worklog.started.slice(0,19), "YYYY-MM-DDTHH:mm:ss")));
-                        var days = duration.asDays();
-                        if(days<=3) {
-                            var timespent = (worklog.timeSpentSeconds/60);
-                            finish.logwork.push({
-                                name: worklog.name,
-                                key: issue.key,
-                                status: issuestatus,
+            gamification.checkStatus(issuestatus, assigneeName, project, issue.key);
+            function checkChangelog(cb){
+                var changelog = _.get(issue, 'changelog.histories', []);
+                changelog.forEach(function(ch){
+                    if (ch.items && ch.items.length) {
+                        ch.items.forEach(function(item){
+                            if (item.field == "status" && item.toString == "Done") {
+                                console.log(assigneeName + " get an item ", issue.key, ch.created);
+                            }
+                        })
+                    }
+                })
+                cb();
+            }
+            
+            function getWorklog(cb){
+                //get log work info
+                jira_utils.getWorklog(startDate, issue.fields.updated, issue.key, req.headers.authorization, function(err, rs){
+                    count++;
+                    if (rs && rs.length) {
+                        rs.forEach(function(worklog){
+                            if (worklog.name == finish.session.name) {
+                                finish.mydata.logwork.push({
+                                    key: issue.key,
+                                    comment: worklog.comment,
+                                    time: worklog.started,
+                                    timespent: (worklog.timeSpentSeconds/60) + ' minutes'
+                                });
+                            }
+                            var duration = moment.duration(new moment().diff(moment(worklog.started.slice(0,19), "YYYY-MM-DDTHH:mm:ss")));
+                            var days = duration.asDays();
+                            if(days<=3) {
+                                var timespent = (worklog.timeSpentSeconds/60);
+                                finish.logwork.push({
+                                    name: worklog.name,
+                                    key: issue.key,
+                                    status: issuestatus,
+                                    issueLink: jiraDomain + '/browse/' + issue.key,
+                                    issuesTypeIconUrl: _.get(issue, "fields.issuetype.iconUrl", ""),
+                                    summary: issue.fields.summary,
+                                    comment: worklog.comment,
+                                    date: moment(worklog.started.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format("YYYY-MM-DD"),
+                                    time: moment(worklog.started.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format("YYYY-MM-DD HH:mm"),
+                                    timespent: timespent < 60 ? (timespent + ' minutes') : (timespent /60 + " hours")
+                                })
+                            }                        
+                            var dateStarted = new moment(worklog.started.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format('YYYY-MM-DD');
+                            finish.users[worklog.name] = finish.users[worklog.name] || {total: 0};
+                            finish.users[worklog.name].total += worklog.timeSpentSeconds;
+                            finish.users[worklog.name][issuetype] = finish.users[worklog.name][issuetype] || 0;
+                            finish.users[worklog.name][issuetype] += worklog.timeSpentSeconds;
+                            
+                            //barchart         
+                            finish.barChartLogworkData.labels.push(worklog.name);
+                            var users = _.uniq(finish.barChartLogworkData.labels);                                    
+                            finish.barChartLogworkData.labels = users;
+                            var labelIndex = _.indexOf(users, worklog.name);
+                            var datasetIndex = _.findIndex(finish.barChartLogworkData.datasets, function(o) { return o.label == issuetype; });
+                            if (datasetIndex == -1) {
+                                finish.barChartLogworkData.datasets.push({
+                                    label: issuetype,
+                                    stack: 'Stack 0',
+                                    backgroundColor: colors.issuetypes[finish.barChartLogworkData.datasets.length].code,
+                                    data: []
+                                });  
+                                datasetIndex =  _.findIndex(finish.barChartLogworkData.datasets, function(o) { return o.label == issuetype; });                                    
+                            }
+                            if(!finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex]) {
+                                finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex] = 0;
+                            }
+                            finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex] += worklog.timeSpentSeconds;
+
+                            finish.dates[dateStarted] = finish.dates[dateStarted] || {};
+                            finish.dates[dateStarted][worklog.name] = finish.dates[dateStarted][worklog.name] || {total: 0};
+                            finish.dates[dateStarted][worklog.name].total += worklog.timeSpentSeconds;
+                            finish.dates[dateStarted][worklog.name][issuetype] = finish.dates[dateStarted][worklog.name][issuetype] || 0;
+                            finish.dates[dateStarted][worklog.name][issuetype] += worklog.timeSpentSeconds;
+                        })
+                    }
+                    // console.log(issue.key + ' ' + count +"/"+ total)
+                    cb();
+                })
+            }
+            async.parallel([
+                function(cback){
+                    getWorklog(function(){
+                        cback();
+                    })
+                },
+                function(cback){
+                    //Check missed sub-task
+                    if (project == "SL" && jqlIndex != 0) {
+                        var componentsName = _.map(components, 'name');
+                        if (components.length == 0){
+                            //missed components
+                            finish.fouls.push({
                                 issueLink: jiraDomain + '/browse/' + issue.key,
                                 issuesTypeIconUrl: _.get(issue, "fields.issuetype.iconUrl", ""),
-                                summary: issue.fields.summary,
-                                comment: worklog.comment,
-                                date: moment(worklog.started.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format("YYYY-MM-DD"),
-                                time: moment(worklog.started.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format("YYYY-MM-DD HH:mm"),
-                                timespent: timespent < 60 ? (timespent + ' minutes') : (timespent /60 + " hours")
+                                summary:  issue.fields.summary,
+                                key:  issue.key,
+                                user: assigneeName,
+                                avatar: issue.fields.assignee.avatarUrls["24x24"],
+                                msg: "Missed component"
                             })
-                        }                        
-                        var dateStarted = new moment(worklog.started.slice(0,19), "YYYY-MM-DDTHH:mm:ss").format('YYYY-MM-DD');
-                        finish.users[worklog.name] = finish.users[worklog.name] || {total: 0};
-                        finish.users[worklog.name].total += worklog.timeSpentSeconds;
-                        finish.users[worklog.name][issuetype] = finish.users[worklog.name][issuetype] || 0;
-                        finish.users[worklog.name][issuetype] += worklog.timeSpentSeconds;
-                        
-                        //barchart         
-                        finish.barChartLogworkData.labels.push(worklog.name);
-                        var users = _.uniq(finish.barChartLogworkData.labels);                                    
-                        finish.barChartLogworkData.labels = users;
-                        var labelIndex = _.indexOf(users, worklog.name);
-                        var datasetIndex = _.findIndex(finish.barChartLogworkData.datasets, function(o) { return o.label == issuetype; });
-                        if (datasetIndex == -1) {
-                            finish.barChartLogworkData.datasets.push({
-                                label: issuetype,
-                                stack: 'Stack 0',
-                                backgroundColor: colors.issuetypes[finish.barChartLogworkData.datasets.length].code,
-                                data: []
-                            });  
-                            datasetIndex =  _.findIndex(finish.barChartLogworkData.datasets, function(o) { return o.label == issuetype; });                                    
+                            cback();
+                        } else {
+                            if (issuetype == "Story" && _.get(issue, "fields.customfield_10004", 0)) {
+                                async.forEach(issue.fields.subtasks, function(subtask, cback){
+                                    jira_utils.getComponent(subtask.key, req.headers.authorization, function(err, cps){
+                                        componentsName = _.pullAll(componentsName, cps);
+                                        cback();
+                                    })
+                                }, function(){
+                                    if (componentsName.length) {
+                                        finish.fouls.push({
+                                            issueLink: jiraDomain + '/browse/' + issue.key,
+                                            issuesTypeIconUrl: _.get(issue, "fields.issuetype.iconUrl", ""),
+                                            summary:  issue.fields.summary,
+                                            key:  issue.key,
+                                            user: assigneeName,
+                                            avatar: issue.fields.assignee.avatarUrls["24x24"],
+                                            msg: "Missed subtask " + componentsName
+                                        })
+                                    }
+                                    cback();
+                                })
+                            } else {
+                                cback();
+                            }
                         }
-                        if(!finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex]) {
-                            finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex] = 0;
-                        }
-                        finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex] += worklog.timeSpentSeconds;
-
-                        finish.dates[dateStarted] = finish.dates[dateStarted] || {};
-                        finish.dates[dateStarted][worklog.name] = finish.dates[dateStarted][worklog.name] || {total: 0};
-                        finish.dates[dateStarted][worklog.name].total += worklog.timeSpentSeconds;
-                        finish.dates[dateStarted][worklog.name][issuetype] = finish.dates[dateStarted][worklog.name][issuetype] || 0;
-                        finish.dates[dateStarted][worklog.name][issuetype] += worklog.timeSpentSeconds;
-                    })
+                    } else {
+                        cback();
+                    }
+                    //===========
                 }
-                // console.log(issue.key + ' ' + count +"/"+ total)
+            ], function(){
                 cback();
             })
         }, function(){
