@@ -4,6 +4,9 @@ var async = require('async');
 var moment = require("moment");
 var gamification = require('./gamification');
 
+var redisClient = require('./config/redis').redisClient;
+
+
 const low = require('lowdb')
 const FileSync = require('lowdb/adapters/FileSync')
 
@@ -148,10 +151,46 @@ function getHistory(cb){
         cb(null, [])
     }
 }
+function getUserInfo(auth, username, cb){
+    redisClient.get('QUP:User:' + username, function(err, info){
+        if (info) {
+            try {
+                cb(err, JSON.parse(info))
+            } catch (ex) {
+                cb(ex);
+            }
+        } else {
+            // var date = new Date();
+            var url = 'https://issues.qup.vn/rest/api/2/user?username=' + username;
+            request({
+                url: url,
+                timeout: 20000,
+                json: true,
+                headers: {
+                    "Authorization": auth
+                }
+            }, function(error, response, result){
+                // console.log(new Date().toISOString(), url + " : " + (new Date() - date));
+                if (result) {
+                    cb(null, result);
+                } else {
+                    cb("notfound", null)
+                }
+            })
+        }
+    })
+}
+function saveUserInfo(username, info, cb){
+    redisClient.set('QUP:User:' + username, JSON.stringify(info), function(err, ok) {
+        cb(err, ok);
+    })
+}
 module.exports = {
     getWorklog,
     searchJQL,
     addHistory,
     getHistory,
-    getComponent
+    getComponent,
+    getUserInfo,
+    saveUserInfo
 }

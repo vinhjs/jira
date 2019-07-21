@@ -7,6 +7,7 @@
     "body-parser": "^1.18.3",
     "chart.js": "^2.7.3",
     "config": "^3.1.0",
+    "ejs": "^2.6.2",
     "express": "^4.16.4",
     "http-auth": "^3.2.3",
     "lodash": "^4.17.11",

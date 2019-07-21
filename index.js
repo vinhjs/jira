@@ -4,12 +4,17 @@ var moment = require('moment');
 const async = require('async');
 const _ = require('lodash');
 const app = express();
+var ejs = require('ejs');
 const http = require('http').Server(app);
 const bodyParser = require('body-parser');
 const path = require('path');
+
+app.set('views', './views') // specify the views directory
+app.set('view engine', 'ejs') // register the template engine
+
 app.use(bodyParser.urlencoded({limit: '2mb', extended: true}));
 app.use(bodyParser.json({limit: '2mb'}));
-app.use('/public', express.static(path.join(__dirname, 'public')))
+app.use(express.static(path.join(__dirname, 'public')))
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
@@ -80,6 +85,7 @@ app.post('/jql', authMiddleware, function(req, res){
         users: {},
         dates: {},
         eta: {},
+        etaByStatus: {},
         components: {},
         fouls: [],
         mydata: {
@@ -105,8 +111,7 @@ app.post('/jql', authMiddleware, function(req, res){
     }
     var jql= jqls[jqlIndex] || "project in (SL, KAN, QS, QQA) AND updated >= -2w&expand=changelog";
     if (jqlIndex == 0) {
-        jql = "project in (SL, KAN, QS, QQA)";
-        jql+=" AND updated >= 2019-07-01&expand=changelog";
+        jql = '(project in (SL, KAN, QQA) AND updated >= 2019-07-01) OR (project = "QUp Support" AND updated >= 2019-07-20)&expand=changelog';
     }
     var totalResult = [];
     var total = 0;
@@ -159,7 +164,8 @@ app.post('/jql', authMiddleware, function(req, res){
             }
             
             if (issue.fields.subtasks.length == 0) {
-                checkChangelog(function(){
+
+                checkChangelog(issue, function(){
 
                 })
                 if (!duedate && assigneeName && project == "SL" && _.indexOf(["Open", "In Progress"], issuestatus) > -1){
@@ -244,6 +250,11 @@ app.post('/jql', authMiddleware, function(req, res){
                 } else {
                     finish.eta[assigneeName] = timeestimate /60/60;
                 }
+                if (finish.etaByStatus[issuestatus]) {
+                    finish.etaByStatus[issuestatus] += timeestimate /60/60;
+                } else {
+                    finish.etaByStatus[issuestatus] = timeestimate /60/60;
+                }
             }
             if(finish.issues.status[issuestatus]) {
                 finish.issues.status[issuestatus]++;
@@ -256,21 +267,6 @@ app.post('/jql', authMiddleware, function(req, res){
             } else {
                 finish.issues.types[issuetype] = 1;
             }
-            gamification.checkStatus(issuestatus, assigneeName, project, issue.key);
-            function checkChangelog(cb){
-                var changelog = _.get(issue, 'changelog.histories', []);
-                changelog.forEach(function(ch){
-                    if (ch.items && ch.items.length) {
-                        ch.items.forEach(function(item){
-                            if (item.field == "status" && item.toString == "Done") {
-                                console.log(assigneeName + " get an item ", issue.key, ch.created);
-                            }
-                        })
-                    }
-                })
-                cb();
-            }
-            
             function getWorklog(cb){
                 //get log work info
                 jira_utils.getWorklog(startDate, issue.fields.updated, issue.key, req.headers.authorization, function(err, rs){
@@ -427,12 +423,17 @@ app.post('/jql', authMiddleware, function(req, res){
             var components = _.keys(finish.components);
             var issuestatus = _.keys(finish.issues.status);
             var issuetypes = _.keys(finish.issues.types);
+            var etaByStatus = _.keys(finish.etaByStatus);
             var datasetsBarChartComponent = [];  
             var datasetsDoughnutChartStatus = [{
                 data: [],
                 backgroundColor: []
             }];  
             var datasetsDoughnutChartTypes = [{
+                data: [],
+                backgroundColor: []
+            }];  
+            var datasetsDoughnutChartEtaStatus = [{
                 data: [],
                 backgroundColor: []
             }];  
@@ -451,6 +452,10 @@ app.post('/jql', authMiddleware, function(req, res){
                 datasetsDoughnutChartTypes[0].data.push(finish.issues.types[issuetypes[i]]);
                 datasetsDoughnutChartTypes[0].backgroundColor.push(colors.issuetypes[i].code || "rgb(255, 99, 132)");
             }
+            for (var i in etaByStatus) {
+                datasetsDoughnutChartEtaStatus[0].data.push(finish.etaByStatus[etaByStatus[i]]);
+                datasetsDoughnutChartEtaStatus[0].backgroundColor.push(colors.issuestatus[i].code || "rgb(255, 99, 132)");
+            }
             finish.doughnutChartStatusData = {
                 labels: issuestatus,
                 datasets: datasetsDoughnutChartStatus
@@ -458,6 +463,10 @@ app.post('/jql', authMiddleware, function(req, res){
             finish.doughnutChartTypesData = {
                 labels: issuetypes,
                 datasets: datasetsDoughnutChartTypes
+            } 
+            finish.doughnutChartEtaStatusData = {
+                labels: etaByStatus,
+                datasets: datasetsDoughnutChartEtaStatus
             }       
             finish.barChartComponentData = {
                 labels: components,
@@ -468,15 +477,47 @@ app.post('/jql', authMiddleware, function(req, res){
             finish.logwork = _.orderBy(finish.logwork, ['date', 'name'], ['asc', 'desc']);
             gamification.getLeaderBoard(function(err, list){
                 finish.leaderboard = list;
+                // list.forEach(function(user){
+                //     jira_utils.getUserInfo(req.headers.authorization, user.username, function(err, info){
+                //         if (info) {
+                //             jira_utils.saveUserInfo(user.username, info, function(err, ok){})
+                //         }
+                //     })
+                // })
                 res.send(finish);
             })
         })
     }
 });
+function checkChangelog(issue, cb){
+    var changelog = _.get(issue, 'changelog.histories', []);
+    var project = _.get(issue, "fields.project.key", '');
+    if (project == "SL" && changelog && changelog.length) {
+        var assigneeName = _.get(issue, 'fields.assignee.name', "");
+        changelog.forEach(function(ch){
+            if (ch.items && ch.items.length) {
+                var author = ch.author.name;
+                ch.items.forEach(function(item){
+                    if (item.field == "status" && item.toString == "Test" && assigneeName) {
+                        gamification.changeStatus(issue.key, item.toString, assigneeName, ch.created, ch.id);
+                    }
+                    if (item.field == "status" && item.toString == "Done" && item.fromString == "Test" && author) {
+                        gamification.changeStatus(issue.key, item.toString, author, ch.created, ch.id);
+                    }
+                })
+            }
+        })
+    }
+    cb();
+}
 app.get('/', function(req, res){
-    res.sendFile(__dirname + '/public/full.html');
+    res.render('full');
+})
+app.get('/rules', function(req, res){
+    res.render('rules');
 })
 require('./router/activities')(app);
+require('./router/leaderboard')(app);
 const port = process.env.PORT || 3001;
 http.listen(port, function () {
     console.log('App is running on ' + port);
