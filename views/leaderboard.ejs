@@ -31,6 +31,8 @@
                     <td class="list__cell"><span class="list__value"><%=list[i].info.displayName%></span><small class="list__label"><%=list[i].username%></small></td>
                     <td class="list__cell"><span class="list__value"><%=list[i].items.total%></span><small class="list__label">Items</small></td>
                     <td class="list__cell"><span class="list__value"><%=list[i].point%></span><small class="list__label">Points</small></td>
+                    <td class="list__cell"><span class="list__value"><%=list[i].today%></span><small class="list__label">Points today</small></td>
+                    <td class="list__cell"><span class="list__value"><%=list[i].level.current%> (<%=list[i].level.percent%> %)</span><small class="list__label">Level</small></td>
                 </tr> 
             <% } %>
         

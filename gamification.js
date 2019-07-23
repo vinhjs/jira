@@ -1,6 +1,7 @@
 var redisClient = require('./config/redis').redisClient;
 var _ = require('lodash');
 var async = require('async');
+var moment = require('moment');
 
 const SCORE = {
     change_status: {
@@ -18,6 +19,8 @@ function logwork(issue, logworkId, username, point, started){
             var now = new Date();
             console.log(now.toISOString(), "logwork", logworkId, username, point);
             redisClient.zincrby('QUP:leaderboard', point, username);
+            var today = started.slice(0,10)
+            redisClient.zincrby('QUP:leaderboard_date:' + today, point, username);
             var score = new Date(started).getTime();
             redisClient.zadd('QUP:activities_all', score, JSON.stringify({time: started, point: point, action: "logwork", issue: issue, id: logworkId, msg: started + ": " +username + " earned " + point + " points, logwork for issues: " + issue}))
             redisClient.zadd('QUP:activities:' + username, score, JSON.stringify({time: started, point: point, action: "logwork", issue: issue, id: logworkId, msg: started + ": You earned " + point + " points, logwork for issues: " + issue}))
@@ -31,6 +34,8 @@ function changeStatus(issue, toStatus, username, created, id){
             var now = new Date();
             console.log(now.toISOString(), "changeStatus", issue, toStatus, username, point);
             redisClient.zincrby('QUP:leaderboard', point, username);
+            var today = created.slice(0,10)
+            redisClient.zincrby('QUP:leaderboard_date:' + today, point, username);
             var score = new Date(created).getTime();
             redisClient.SRANDMEMBER("QUP:Items", function(err, rand){
                 if (rand) {
@@ -83,10 +88,55 @@ function getLeaderBoard(cb){
                         }
                         cback(err, {total, list: rs});
                     })
+                },
+                level: function(cback){
+                    async.parallel({
+                        current: function(cback){
+                            redisClient.ZREVRANGEBYSCORE("QUP:LEVELS_POINT", item.point, 0, 'WITHSCORES', 'LIMIT', 0 , 1, function(err, level){
+                                if (level && level[0]) {
+                                    cback(null, level);
+                                } else {
+                                    cback(null, [0, 0]);
+                                }
+                            })
+                        },
+                        nextLevel: function(cback){
+                            redisClient.ZRANGEBYSCORE("QUP:LEVELS_POINT", item.point , '+inf', 'WITHSCORES', 'LIMIT', 0, 1, function(err, level){
+                                if (level && level[0]) {
+                                    cback(null, level);
+                                } else {
+                                    cback(null, [0, 0])
+                                }
+                            })
+                        }
+                    }, function(err, rs){
+                        var total = parseInt(rs.nextLevel[1]) - parseInt(rs.current[1]);
+                        var userPoint = parseInt(item.point) - parseInt(rs.current[1]);
+                        var percent = (userPoint/total * 100).toFixed(0);
+                        if (total == 0) {
+                            percent = 0;
+                        }
+                        cback(null, {
+                            current: parseInt(rs.current[0]) + 1,
+                            percent: percent
+                        })
+                    })
+                },
+                today: function(cback){
+                    var today = new moment().format("YYYY-MM-DD");
+                    redisClient.ZSCORE('QUP:leaderboard_date:' + today, item.username, function(err, score) {
+                        if (score) {
+                            cback(null, parseInt(score));
+                        } else {
+                            cback(null, 0)
+                        }
+                    });
                 }
             }, function(err, rs){
                 item.info = rs.info;
                 item.items = rs.items;
+                item.level = rs.level;
+                item.today = rs.today;
                 cback();
             })
         }, function(){
@@ -119,6 +169,7 @@ function checkStatus(status, assignee, project, key){
         console.log('checkStatus', status, assignee, project, key)
     }
 }
+
 module.exports = {
     logwork,
     getLeaderBoard,
