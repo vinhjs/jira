@@ -72,7 +72,7 @@ tableRow.forEach(tableRow => {
     for (var i=0; i< list_items.length; i++){
       for (var j = 0; j < list_items[i].total; j++) {
         html+= `
-        <img src="/items/PNG/48/RoundIcons-Free-Set-${list_items[i].item}.png">
+        <img src="/items/PNG/48/${list_items[i].item}.png">
       `
       }
       
