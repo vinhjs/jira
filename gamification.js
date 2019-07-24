@@ -148,11 +148,11 @@ function getLeaderBoard(cb){
 }
 function getActivities(username, cb){
     if (username) {
-        redisClient.ZRANGE('QUP:activities:' + username, 0, -1, function(err, list){
+        redisClient.ZREVRANGE('QUP:activities:' + username, 0, -1, function(err, list){
             cb(err, list);
         })
     } else {
-        redisClient.ZRANGE('QUP:activities_all', 0, -1, function(err, list){
+        redisClient.ZREVRANGE('QUP:activities_all', 0, -1, function(err, list){
             cb(err, list)
         })
     }
