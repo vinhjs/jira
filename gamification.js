@@ -21,6 +21,7 @@ function logwork(issue, logworkId, username, point, started){
             redisClient.zincrby('QUP:leaderboard', point, username);
             var today = started.slice(0,10)
             redisClient.zincrby('QUP:leaderboard_date:' + today, point, username);
+            redisClient.zincrby('QUP:all_logwork_date', point, today);
             var score = new Date(started).getTime();
             redisClient.zadd('QUP:activities_all', score, JSON.stringify({time: started, point: point, action: "logwork", issue: issue, id: logworkId, msg: started + ": " +username + " earned " + point + " points, logwork for issues: " + issue}))
             redisClient.zadd('QUP:activities:' + username, score, JSON.stringify({time: started, point: point, action: "logwork", issue: issue, id: logworkId, msg: started + ": You earned " + point + " points, logwork for issues: " + issue}))

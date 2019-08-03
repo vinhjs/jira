@@ -56,7 +56,7 @@ var groups = {
 }
 var jqls = [
     "project in (SL, KAN, QS, QQA)&expand=changelog",
-    'Sprint in (319,320,321) AND project = "Scrum Lab"&expand=changelog',
+    '(Sprint in (319,320,321) AND project = "Scrum Lab") OR (project = "QA Operations" AND Sprint = 322)&expand=changelog',
     '(Sprint = 321 AND project = "Scrum Lab") OR (project = "QA Operations" AND assignee in ('+groups.server+') AND updated >= 2019-07-01)&expand=changelog',
     '(Sprint = 319 AND project = "Scrum Lab") OR (project = "QA Operations" AND assignee in ('+groups.web+') AND updated >= 2019-07-01)&expand=changelog',
     '(Sprint = 320 AND project = "Scrum Lab") OR (project = "QA Operations" AND assignee in ('+groups.app+') AND updated >= 2019-07-01)&expand=changelog'
@@ -664,13 +664,13 @@ app.post('/jql', authMiddleware, function(req, res){
             finish.logwork = _.orderBy(finish.logwork, ['date', 'name'], ['asc', 'desc']);
             gamification.getLeaderBoard(function(err, list){
                 finish.leaderboard = list;
-                // list.forEach(function(user){
-                //     jira_utils.getUserInfo(req.headers.authorization, user.username, function(err, info){
-                //         if (info) {
-                //             jira_utils.saveUserInfo(user.username, info, function(err, ok){})
-                //         }
-                //     })
-                // })
+                list.forEach(function(user){
+                    jira_utils.getUserInfo(req.headers.authorization, user.username, function(err, info){
+                        if (info) {
+                            jira_utils.saveUserInfo(user.username, info, function(err, ok){})
+                        }
+                    })
+                })
                 jira_utils.cache("latest", finish);
                 res.send(finish);
             })

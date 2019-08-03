@@ -22,6 +22,10 @@ tableRow.forEach(tableRow => {
     setTimeout(() => {
       overlay.style.opacity = 1;
     }, 100);
+    // Sidebar header
+    const sidebarHeader = document.querySelector(".sidebar__header");
+    var btnClode = document.querySelector(".button--close");
+    sidebarHeader.innerHTML = '';
 
     // Sidebar content
     const sidebarBody = document.querySelector(".sidebar__body");
@@ -32,7 +36,6 @@ tableRow.forEach(tableRow => {
     const points = this.querySelector(".list__cell:nth-of-type(4) .list__value").innerHTML;
     const driverImage = this.dataset.image;
     const list_items = JSON.parse(this.dataset.items);
-    console.log(list_items);
     const newDriver = document.createElement('div');
     newDriver.classList = 'driver';
 
@@ -65,7 +68,8 @@ tableRow.forEach(tableRow => {
     driverContent.appendChild(driverInfo);
 
     newDriver.appendChild(driverContent);
-    sidebarBody.appendChild(newDriver);
+    sidebarHeader.appendChild(newDriver);
+    sidebarHeader.appendChild(btnClode);
 
     const driverItems = document.createElement('div');
     var html = '<div class="items">'
@@ -80,10 +84,16 @@ tableRow.forEach(tableRow => {
     html += '</div>'
     driverItems.innerHTML = html;
     sidebarBody.appendChild(driverItems);
-
   });
 });
-
+function openCity(cityName) {
+  var i;
+  var x = document.getElementsByClassName("city");
+  for (i = 0; i < x.length; i++) {
+    x[i].style.display = "none";
+  }
+  document.getElementById(cityName).style.display = "block";
+}
 closeOverlayBtn.addEventListener("click", function () {
   sidebarClose();
 });
