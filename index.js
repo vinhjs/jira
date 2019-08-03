@@ -69,6 +69,156 @@ app.get('/test', function(req, res){
     console.log('======');
     res.send({id:2});
 })
+var all_users = {
+    all: [ 'huy.nguyen',
+    'hao.le',
+    'vi.leh',
+    'nhuan.vu',
+    'phuong.tran',
+    'hoang.dinh',
+    'dat.pham',
+    'tam.nguyen',
+    'vinh.tran',
+    'nghia.huynht',
+    'chuong.vo',
+    'thuan.ho',
+    'chuong.nguyen',
+    'dat.huynh',
+    'vi.phantt',
+    'quyen.phanh',
+    'nhan.phan',
+    'hoang.nguyen',
+    'duy.phan',
+    'dung.nguyen',
+    'khue.nguyennd',
+    'an.nguyenp',
+    'anh.nguyen',
+    'oanh.nguyentl' ],
+    dev: [
+        'huy.nguyen',
+        'hao.le',
+        'nhuan.vu',
+        'phuong.tran',
+        'dat.pham',
+        'vinh.tran',
+        'chuong.vo',
+        'thuan.ho',
+        'chuong.nguyen',
+        'dat.huynh',
+        'hoang.nguyen',
+        'duy.phan'
+    ],
+    tester: [
+        'vi.leh',
+        'hoang.dinh',
+        'tam.nguyen',
+        'nghia.huynht',
+        'vi.phantt',
+        'quyen.phanh',
+        'nhan.phan',
+        'dung.nguyen',
+        'khue.nguyennd',
+        'an.nguyenp',
+        'anh.nguyen',
+        'oanh.nguyentl'
+    ]
+}
+app.get('/api/report', function(req, res){
+    jira_utils.getCache('latest', function(err, info){
+        if (!err && info) {
+            var rs = {};
+            var keys = _.keys(info.reports);
+            async.forEach(keys, function(key, cback){
+                rs[key] = {
+                    subtasks: 0,
+                    status: {
+                        total: 0,
+                        Open: 0,
+                        'In Review': 0,
+                        Test: 0,
+                        Done: 0,
+                        'In Progress': 0,
+                        Closed: 0,
+                        
+                    },
+                    percent: {
+
+                    },
+                    spenttime: 0
+                };
+                async.forEach(info.reports[key], function(k, cback){
+                    jira_utils.getIssueInfo(k, req.headers.authorization, function(err, result){
+                        if (!err && result) {
+                            var issuestatus = _.get(result, "fields.status.name", "Closed");
+                            var worklogs = _.get(result, 'fields.worklog.worklogs', []);
+                            rs[key].summary = _.get(result, 'fields.summary', '');
+                            if (result.fields.subtasks.length == 0) {
+                                rs[key].subtasks++;
+                                rs[key].status.total++;
+                                rs[key].status[issuestatus]++;
+                                if (worklogs && worklogs.length) {
+                                    async.forEach(worklogs, function(wl, cback){
+                                        rs[key].spenttime += wl.timeSpentSeconds;
+                                        cback();
+                                    }, function(){cback();})
+                                } else {
+                                    cback();
+                                }
+                            } else {
+                                async.forEach(result.fields.subtasks, function(sub, cback){
+                                    var issuestatus = sub.fields.status.name;
+                                    rs[key].subtasks++;
+                                    rs[key].status.total++;
+                                    rs[key].status[issuestatus]++;
+                                    jira_utils.getIssueInfo(sub.key, req.headers.authorization, function(err, info){
+                                        var worklogs = _.get(info, 'fields.worklog.worklogs', []);
+                                        if (worklogs && worklogs.length) {
+                                            async.forEach(worklogs, function(wl, cback){
+                                                rs[key].spenttime += wl.timeSpentSeconds;
+                                                cback();
+                                            }, function(){cback();})
+                                        } else {
+                                            cback();
+                                        }
+                                    })
+                                }, function(){
+                                    cback();
+                                })
+                            }
+                        } else {
+                            cback();
+                        }
+                    })
+                }, function(){
+                    rs[key].spenttime = rs[key].spenttime/60/60
+                    if (rs[key].status.Open) {
+                        rs[key].percent.Open = (rs[key].status.Open / rs[key].status.total) * 100;
+                    }
+                    if (rs[key].status.Test) {
+                        rs[key].percent.Test = (rs[key].status.Test / rs[key].status.total) * 100;
+                    }
+                    if (rs[key].status.Done) {
+                        rs[key].percent.Done = (rs[key].status.Done / rs[key].status.total) * 100;
+                    }
+                    if (rs[key].status.Closed) {
+                        rs[key].percent.Closed = (rs[key].status.Closed / rs[key].status.total) * 100;
+                    }
+                    if (rs[key].status['In Review']) {
+                        rs[key].percent['In Review'] = (rs[key].status['In Review'] / rs[key].status.total) * 100;
+                    }
+                    if (rs[key].status['In Progress']) {
+                        rs[key].percent['In Progress'] = (rs[key].status['In Progress'] / rs[key].status.total) * 100;
+                    }
+                    cback();
+                })
+            }, function(){
+                res.send(rs);
+            })
+        } else {
+            console.log(err);
+        }
+    })
+})
 app.post('/jql', authMiddleware, function(req, res){
     var username = Buffer.from(req.headers.authorization.split(" ")[1], 'base64').toString('ascii').split(":")[0];
     jira_utils.addHistory(username, req.body.jql);   
@@ -99,7 +249,8 @@ app.post('/jql', authMiddleware, function(req, res){
         barChartComponentData: {
             labels: [],
             datasets: []
-        }
+        },
+        reports: {}
     } 
     var startAt = 0;
     // var jql= "project in (SL, KAN) AND updated >= -2w";
@@ -159,6 +310,39 @@ app.post('/jql', authMiddleware, function(req, res){
             var project = _.get(issue, "fields.project.key", '');
             var timeestimate = _.get(issue, 'fields.timeestimate', 0);
             var duedate = _.get(issue, 'fields.duedate', null);
+            var issuelabels = _.get(issue, 'fields.labels', []);
+            //generate report
+                if (_.indexOf(["Story","Improvement","New Feature","Task"], issuetype) > -1) {
+                    var link = "Other";
+                    issuelabels.forEach(function(label){
+                        if (label.indexOf("Link-QBA") != -1) {
+                            link = label;
+                        }
+                        if (label.indexOf("Automation") != -1) {
+                            link = label;
+                        }
+                        if (label.indexOf("CloneApp") != -1) {
+                            link = label;
+                        }
+                        if (label.indexOf("Improvement") != -1) {
+                            link = label;
+                        }
+                    })
+                    if (issuetype == "Task") {
+                        if (link) {
+                            finish.reports[link] ? finish.reports[link].push(issue.key) : finish.reports[link] = [issue.key];
+                        } else {
+                            finish.reports[issue.key] ? finish.reports[issue.key].push(issue.key) : finish.reports[issue.key] = [issue.key];
+                        }
+                    } else if (_.get(issue, "fields.customfield_10004", 0)){
+                        if (link) {
+                            finish.reports[link] ? finish.reports[link].push(issue.key) : finish.reports[link] = [issue.key];
+                        } else {
+                            finish.reports[issue.key] ? finish.reports[issue.key].push(issue.key) : finish.reports[issue.key] = [issue.key];
+                        }
+                    }
+                }
+            //
             if (timeestimate == 0) {
                 timeestimate = _.get(issue, 'fields.timeoriginalestimate', 0);
             }
@@ -239,7 +423,7 @@ app.post('/jql', authMiddleware, function(req, res){
             }
             if (issuetype === "Story") {
                 finish.point += _.get(issue, "fields.customfield_10004", 0);
-            } else if (assigneeName && timeestimate){
+            } else if (assigneeName && _.indexOf(all_users.all, assigneeName) > -1 && timeestimate){
                 finish.point += _.get(issue, "fields.customfield_10004", 0);
                 //get estimate time
                 finish.barChartLogworkData.labels.push(assigneeName);
@@ -304,25 +488,28 @@ app.post('/jql', authMiddleware, function(req, res){
                             finish.users[worklog.name][issuetype] = finish.users[worklog.name][issuetype] || 0;
                             finish.users[worklog.name][issuetype] += worklog.timeSpentSeconds;
                             
-                            //barchart         
-                            finish.barChartLogworkData.labels.push(worklog.name);
-                            var users = _.uniq(finish.barChartLogworkData.labels);                                    
-                            finish.barChartLogworkData.labels = users;
-                            var labelIndex = _.indexOf(users, worklog.name);
-                            var datasetIndex = _.findIndex(finish.barChartLogworkData.datasets, function(o) { return o.label == issuetype; });
-                            if (datasetIndex == -1) {
-                                finish.barChartLogworkData.datasets.push({
-                                    label: issuetype,
-                                    stack: 'Stack 0',
-                                    backgroundColor: colors.issuetypes[finish.barChartLogworkData.datasets.length].code,
-                                    data: []
-                                });  
-                                datasetIndex =  _.findIndex(finish.barChartLogworkData.datasets, function(o) { return o.label == issuetype; });                                    
-                            }
-                            if(!finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex]) {
-                                finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex] = 0;
-                            }
-                            finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex] += worklog.timeSpentSeconds;
+                            //barchart  
+                            if (_.indexOf(all_users.all, worklog.name) > -1) {
+                                finish.barChartLogworkData.labels.push(worklog.name);
+                                var users = _.uniq(finish.barChartLogworkData.labels);                                    
+                                finish.barChartLogworkData.labels = users;
+                                var labelIndex = _.indexOf(users, worklog.name);
+                                var datasetIndex = _.findIndex(finish.barChartLogworkData.datasets, function(o) { return o.label == issuetype; });
+                                if (datasetIndex == -1) {
+                                    finish.barChartLogworkData.datasets.push({
+                                        label: issuetype,
+                                        stack: 'Stack 0',
+                                        backgroundColor: colors.issuetypes[finish.barChartLogworkData.datasets.length].code,
+                                        data: []
+                                    });  
+                                    datasetIndex =  _.findIndex(finish.barChartLogworkData.datasets, function(o) { return o.label == issuetype; });                                    
+                                }
+                                if(!finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex]) {
+                                    finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex] = 0;
+                                }
+                                finish.barChartLogworkData.datasets[datasetIndex].data[labelIndex] += worklog.timeSpentSeconds;
+                            }       
+                            
 
                             finish.dates[dateStarted] = finish.dates[dateStarted] || {};
                             finish.dates[dateStarted][worklog.name] = finish.dates[dateStarted][worklog.name] || {total: 0};
@@ -484,6 +671,7 @@ app.post('/jql', authMiddleware, function(req, res){
                 //         }
                 //     })
                 // })
+                jira_utils.cache("latest", finish);
                 res.send(finish);
             })
         })

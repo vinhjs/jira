@@ -2,7 +2,7 @@ module.exports = {
     issuetypes: [
         { name: 'red', code: 'rgb(255, 99, 132)'},
         { name: 'orange', code: 'rgb(255, 159, 64)'},
-        { name: 'yellow', code: 'rgb(255, 205, 86)'},
+        { name: 'red', code: 'rgb(255, 0, 0)'},
         { name: 'green', code: 'rgb(75, 192, 192)'},
         { name: 'blue', code: 'rgb(54, 162, 235)'},
         { name: 'purple', code: 'rgb(153, 102, 255)'},
@@ -21,7 +21,8 @@ module.exports = {
         { name: 'grey', code: 'rgb(201, 203, 207)'},
         { name: '', code: 'rgb(249, 149, 198)'},
         { name: '', code: 'rgb(17, 39, 11)'},
-        { name: '', code: 'rgb(255,51,119)'}
+        { name: '', code: 'rgb(255,51,119)'},
+        { name: '', code: 'rgb(255,51,0)'},
     ],
     users: {
         'nguyen.tran': 'rgb(255, 99, 132)',

@@ -68,7 +68,7 @@ tableRow.forEach(tableRow => {
     sidebarBody.appendChild(newDriver);
 
     const driverItems = document.createElement('div');
-    var html = '<div>'
+    var html = '<div class="items">'
     for (var i=0; i< list_items.length; i++){
       for (var j = 0; j < list_items[i].total; j++) {
         html+= `

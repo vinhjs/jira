@@ -137,16 +137,19 @@
   .overlay.is-open {
     display: block;
   }
-  
+  .items {
+    overflow-y: scroll;
+    height: 400px;
+  }
   .sidebar {
     position: fixed;
     background: white;
     width: 100%;
-    max-width: 500px;
+    max-width: 900px;
     top: 0;
     bottom: 0;
     box-shadow: none;
-    right: -500px;
+    right: -900px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;

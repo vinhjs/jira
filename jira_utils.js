@@ -52,6 +52,25 @@ var searchJQL = function(startAt, jql, auth, session, cb){
         cb(err, rs);
     })   
 }
+var getIssueInfo = function(key, auth, cb){
+    var url = 'https://issues.qup.vn/rest/api/2/issue/' + key;
+    var date = new Date();
+    request({
+        url: url,
+        timeout: 20000,
+        json: true,
+        headers: {
+            "Authorization": auth
+        }
+    }, function(error, response, result){
+        // console.log(new Date().toISOString(), url + " : " + (new Date() - date));
+        if (result) {
+            cb(null, result);
+        } else {
+            cb("notfound", [])
+        }
+    });
+}
 var getWorklog = function(startDate, updated, key, auth, cb){
     var url = 'https://issues.qup.vn/rest/api/2/issue/'+key+'/worklog';
     getCacheDb(key, updated, function(err, data) {
@@ -185,7 +204,30 @@ function saveUserInfo(username, info, cb){
         cb(err, ok);
     })
 }
+function cache(key, data){
+    var info = {
+        reports: data.reports,
+        doughnutChartStatusData: data.doughnutChartStatusData,
+        doughnutChartTypesData:data.doughnutChartTypesData,
+        doughnutChartEtaStatusData: data.doughnutChartEtaStatusData,
+        barChartLogworkData: data.barChartLogworkData,
+        barChartComponentData: data.barChartComponentData
+    }
+    redisClient.set(key, JSON.stringify(info));
+}
+function getCache(key, cb){
+    redisClient.get(key, function(err, data){
+        if (data) {
+            cb(null, JSON.parse(data));
+        } else {
+            cb(err, null)
+        }
+    })
+}
 module.exports = {
+    getIssueInfo,
+    cache,
+    getCache,
     getWorklog,
     searchJQL,
     addHistory,
