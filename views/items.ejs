@@ -1,0 +1,20 @@
+<head>
+    <meta charset="UTF-8">
+    <title>QUp Gamification - Items</title>
+    <link rel="stylesheet" href="/css/items.css">
+</head>
+<body>
+    <div class="box">
+        <% for (var i=0; i<items.length;i++) {%>
+        <div class="card">
+          <div class="imgBx">
+              <img src="/items/PNG/48/<%=items[i]%>.png">
+          </div>
+          <div class="details">
+              <h2>Item<br><span><%=items[i]%></span></h2>
+          </div>
+        </div>
+      
+        <% } %>
+    </div>
+  </body>

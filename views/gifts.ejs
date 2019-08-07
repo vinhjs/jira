@@ -1,0 +1,18 @@
+<head>
+    <meta charset="UTF-8">
+    <title>QUp Gamification - Gifts</title>
+    <!-- <link rel="stylesheet" href="/css/items.css"> -->
+</head>
+<div>
+<ul>
+    <% for (var i=0; i<items.length;i++) {%>
+            
+    <a href="#"><img src="/items/PNG/48/<%=items[i]%>.png"></a>
+    <% } %>
+</ul>
+<br><br>
+<% for (var i=0; i<gifts.length;i++) {%>
+        
+<br><img src="<%=gifts[i].avatarUrls['48x48']%>"><%=gifts[i].displayName%>
+<% } %>
+</div>

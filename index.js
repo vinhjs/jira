@@ -312,7 +312,7 @@ app.post('/jql', authMiddleware, function(req, res){
             var duedate = _.get(issue, 'fields.duedate', null);
             var issuelabels = _.get(issue, 'fields.labels', []);
             //generate report
-                if (_.indexOf(["Story","Improvement","New Feature","Task"], issuetype) > -1) {
+                if (_.indexOf(["Story","Improvement","New Feature","Task"], issuetype) > -1 && project == "SL") {
                     var link = "Other";
                     issuelabels.forEach(function(label){
                         if (label.indexOf("Link-QBA") != -1) {
@@ -423,7 +423,7 @@ app.post('/jql', authMiddleware, function(req, res){
             }
             if (issuetype === "Story") {
                 finish.point += _.get(issue, "fields.customfield_10004", 0);
-            } else if (assigneeName && _.indexOf(all_users.all, assigneeName) > -1 && timeestimate){
+            } else if (assigneeName && _.indexOf(all_users.tester, assigneeName) > -1 && timeestimate){
                 finish.point += _.get(issue, "fields.customfield_10004", 0);
                 //get estimate time
                 finish.barChartLogworkData.labels.push(assigneeName);
@@ -489,7 +489,7 @@ app.post('/jql', authMiddleware, function(req, res){
                             finish.users[worklog.name][issuetype] += worklog.timeSpentSeconds;
                             
                             //barchart  
-                            if (_.indexOf(all_users.all, worklog.name) > -1) {
+                            if (_.indexOf(all_users.tester, worklog.name) > -1) {
                                 finish.barChartLogworkData.labels.push(worklog.name);
                                 var users = _.uniq(finish.barChartLogworkData.labels);                                    
                                 finish.barChartLogworkData.labels = users;
@@ -706,6 +706,8 @@ app.get('/rules', function(req, res){
 })
 require('./router/activities')(app);
 require('./router/leaderboard')(app);
+require('./router/items')(app);
+require('./router/gifts')(app);
 const port = process.env.PORT || 3001;
 http.listen(port, function () {
     console.log('App is running on ' + port);

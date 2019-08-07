@@ -9,7 +9,12 @@ const SCORE = {
         "Done": 200
     }
 }
-
+function getItems(cb){
+    redisClient.smembers("QUP:Items", function(err, items){
+        items = items.sort();
+        cb(err, items);
+    })
+}
 function logwork(issue, logworkId, username, point, started){
     if (point > 360) {
         point = 360;
@@ -170,11 +175,134 @@ function checkStatus(status, assignee, project, key){
         console.log('checkStatus', status, assignee, project, key)
     }
 }
+// redisClient.zrange("QUP:all_logwork_date", 0, 100000, 'WITHSCORES', function(err, list){
+//     if (list && list.length) {
+//         var rs = [];
+//         var dates = {};
+//         var data = {
+//             "type": "serial",
+//             "categoryField": "category",
+//             "startDuration": 1,
+//             "categoryAxis": {
+//                 "gridPosition": "start"
+//             },
+//             "chartCursor": {
+//                 "enabled": true
+//             },
+//             "chartScrollbar": {
+//                 "enabled": true
+//             },
+//             "trendLines": [],
+//             "graphs": [
+//                 {
+//                     "fillAlphas": 1,
+//                     "id": "AmGraph-1",
+//                     "title": "graph 1",
+//                     "type": "column",
+//                     "valueField": "column-1"
+//                 }
+//             ],
+//             "guides": [],
+//             "valueAxes": [
+//                 {
+//                     "id": "ValueAxis-1",
+//                     "title": "Axis title"
+//                 }
+//             ],
+//             "allLabels": [],
+//             "balloon": {},
+//             "titles": [
+//                 {
+//                     "id": "Title-1",
+//                     "size": 15,
+//                     "text": "Chart Title"
+//                 }
+//             ],
+//             "dataProvider": [
+                
+//             ]
+//         };
+//         for (var i in list) {
+//             if (i%2 == 0) {
+//                 dates[list[i]] = parseInt(list[parseInt(i)+1]);
+//                 rs.push({
+//                     "category": list[i],
+//                     "column-1": parseInt(list[parseInt(i)+1])
+//                 })
+                
+//             }
+//         }
+//         var startDate = new moment("01-01-2019", "MM-DD-YYYY");
+//         var now = new moment();
 
+//         var stop = false;
+//         async.whilst(
+//         function() { return !stop; },
+//         function(callback) {
+//             var duration = moment.duration(startDate.diff(now)).asDays();
+//             // console.log(duration)
+//             if(duration < 0) {
+//                 if (!dates[startDate.format("YYYY-MM-DD")]) {
+//                     dates[startDate.format("YYYY-MM-DD")] = 0;
+//                     rs.push({
+//                         "category": startDate.format("YYYY-MM-DD"),
+//                         "column-1": 0
+//                     })
+//                 }
+//                 startDate.add(1, 'd');
+//                 callback();
+//             } else {
+//                 stop = true;
+//                 callback();
+//             }
+//         },
+//         function (err, res) {
+//             rs = _.sortBy(rs, ['category']);
+//             data.dataProvider = rs;
+//             console.log(JSON.stringify(data));
+//         }
+//         );
+//     }
+// })
+function checkGifts(items, cb){
+    redisClient.KEYS("QUP:User_Items:*", function(err, keys){
+        var rs = [];
+        async.forEach(keys, function(key, cback){
+            var username = key.split(":")[2];
+            redisClient.HGETALL(key, function(err, info){
+                if (info) {
+                    // console.log(username)
+                    // console.log(_.keys(info));
+                    // console.log(items);
+                    // console.log(_.intersection(_.keys(info), items))
+                    if(_.xor(_.intersection(_.keys(info), items), items).length == 0) {
+                        redisClient.get("QUP:User:" + username, function(err, userInfo){
+                            try {
+                                rs.push(JSON.parse(userInfo));
+                                cback();
+                            } catch (ex) {
+                                console.log(ex);
+                                cback();
+                            }
+                        });
+                    } else {
+                        cback();
+                    }
+                } else {
+                    cback();
+                }
+            })
+        }, function(){
+            cb(rs);
+        })
+    })
+}
 module.exports = {
     logwork,
     getLeaderBoard,
     getActivities,
     checkStatus,
-    changeStatus
+    changeStatus,
+    getItems,
+    checkGifts
 }
