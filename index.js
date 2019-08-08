@@ -51,15 +51,16 @@ app.get('/histories', function(req, res){
 });
 var groups = {
     server: '"vinh.tran","thuan.ho","chuong.vo","chuong.nguyen","hoang.nguyen","nhan.phan","nghia.huynht","vi.leh"',
-    web: '"huy.nguyen","vi.phantt","thuan.le","dat.huynh","dat.pham","hoang.dinh","oanh.nguyentl"',
+    web: '"huy.nguyen","vi.phantt","thuan.le","dat.huynh","dat.pham","hoang.dinh","oanh.nguyentl","hung.phan"',
     app: '"duy.phan","dung.nguyen","hao.le","phuong.tran","nhuan.vu","hien.do","tam.nguyen","khue.nguyennd","quyen.phanh"',
 }
 var jqls = [
     "project in (SL, KAN, QS, QQA)&expand=changelog",
-    '(Sprint in (319,320,321) AND project = "Scrum Lab") OR (project = "QA Operations" AND Sprint = 322)&expand=changelog',
-    '(Sprint = 321 AND project = "Scrum Lab") OR (project = "QA Operations" AND assignee in ('+groups.server+') AND updated >= 2019-07-01)&expand=changelog',
-    '(Sprint = 319 AND project = "Scrum Lab") OR (project = "QA Operations" AND assignee in ('+groups.web+') AND updated >= 2019-07-01)&expand=changelog',
-    '(Sprint = 320 AND project = "Scrum Lab") OR (project = "QA Operations" AND assignee in ('+groups.app+') AND updated >= 2019-07-01)&expand=changelog'
+    'Sprint in (323) AND project = "Scrum Lab"&expand=changelog',
+    'Sprint = 325 AND project = "Scrum Lab" AND assignee in ('+groups.server+') AND updated >= 2019-07-01&expand=changelog',
+    'Sprint = 324 AND project = "Scrum Lab" AND assignee in ('+groups.web+') AND updated >= 2019-07-01&expand=changelog',
+    'Sprint = 327 AND project = "Scrum Lab" AND assignee in ('+groups.app+') AND updated >= 2019-07-01&expand=changelog',
+    'Sprint in (324,325,327) AND project = "Scrum Lab" AND updated >= 2019-07-01&expand=changelog'
 ];
 var whatsapp = require('./whatsapp');
 app.get('/test', function(req, res){
@@ -352,7 +353,7 @@ app.post('/jql', authMiddleware, function(req, res){
                 checkChangelog(issue, function(){
 
                 })
-                if (!duedate && assigneeName && project == "SL" && _.indexOf(["Open", "In Progress"], issuestatus) > -1){
+                if (!duedate && assigneeName && _.indexOf(["Story","Improvement","New Feature","Task"], issuetype) == -1 && project == "SL" && _.indexOf(["Open", "In Progress"], issuestatus) > -1){
                     finish.fouls.push({
                         issueLink: jiraDomain + '/browse/' + issue.key,
                         issuesTypeIconUrl: _.get(issue, "fields.issuetype.iconUrl", ""),
