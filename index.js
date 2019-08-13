@@ -94,7 +94,9 @@ var all_users = {
     'khue.nguyennd',
     'an.nguyenp',
     'anh.nguyen',
-    'oanh.nguyentl' ],
+    'oanh.nguyentl',
+    'hung.phan'
+],
     dev: [
         'huy.nguyen',
         'hao.le',
@@ -107,7 +109,8 @@ var all_users = {
         'chuong.nguyen',
         'dat.huynh',
         'hoang.nguyen',
-        'duy.phan'
+        'duy.phan',
+        'hung.phan'
     ],
     tester: [
         'vi.leh',
@@ -222,8 +225,6 @@ app.get('/api/report', function(req, res){
 })
 app.post('/jql', authMiddleware, function(req, res){
     var username = Buffer.from(req.headers.authorization.split(" ")[1], 'base64').toString('ascii').split(":")[0];
-    jira_utils.addHistory(username, req.body.jql);   
-    whatsapp.send(username + " " + req.body.jql);
     var finish = {
         jiraDomain: jiraDomain,
         issuetypes: [],
@@ -424,7 +425,7 @@ app.post('/jql', authMiddleware, function(req, res){
             }
             if (issuetype === "Story") {
                 finish.point += _.get(issue, "fields.customfield_10004", 0);
-            } else if (assigneeName && _.indexOf(all_users.tester, assigneeName) > -1 && timeestimate){
+            } else if (assigneeName && _.indexOf(all_users.dev, assigneeName) > -1 && timeestimate){
                 finish.point += _.get(issue, "fields.customfield_10004", 0);
                 //get estimate time
                 finish.barChartLogworkData.labels.push(assigneeName);
@@ -490,7 +491,7 @@ app.post('/jql', authMiddleware, function(req, res){
                             finish.users[worklog.name][issuetype] += worklog.timeSpentSeconds;
                             
                             //barchart  
-                            if (_.indexOf(all_users.tester, worklog.name) > -1) {
+                            if (_.indexOf(all_users.dev, worklog.name) > -1) {
                                 finish.barChartLogworkData.labels.push(worklog.name);
                                 var users = _.uniq(finish.barChartLogworkData.labels);                                    
                                 finish.barChartLogworkData.labels = users;
@@ -709,6 +710,7 @@ require('./router/activities')(app);
 require('./router/leaderboard')(app);
 require('./router/items')(app);
 require('./router/gifts')(app);
+require('./router/sprint')(app);
 const port = process.env.PORT || 3001;
 http.listen(port, function () {
     console.log('App is running on ' + port);

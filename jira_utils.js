@@ -224,6 +224,34 @@ function getCache(key, cb){
         }
     })
 }
+var updateDuedate = function(key, duedate, auth, cb){
+    var url = 'https://issues.qup.vn/rest/api/2/issue/' + key;
+    request({
+        method: "PUT",
+        url: url,
+        timeout: 20000,
+        json: true,
+        body: {
+            "update": {
+                "duedate": [
+                    {
+                        "set": duedate
+                    }
+                ]
+            }
+        },
+        headers: {
+            "Authorization": auth
+        }
+    }, function(error, response, result){
+        // console.log(new Date().toISOString(), url + " : " + (new Date() - date));
+        if (result) {
+            cb(null, result);
+        } else {
+            cb("notfound", null)
+        }
+    })
+}
 module.exports = {
     getIssueInfo,
     cache,
@@ -234,5 +262,6 @@ module.exports = {
     getHistory,
     getComponent,
     getUserInfo,
-    saveUserInfo
+    saveUserInfo,
+    updateDuedate
 }
