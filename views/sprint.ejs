@@ -4,9 +4,12 @@
         <thead>
             <tr>
                 <th>Story</th>
+                <th>Status</th>
+                <th>Points</th>
                 <th>Duedate</th>
-                <th>Progress (%)</th>
+                <th>OriginDuedate</th>
                 <th>Sub-Tasks</th>
+                <th>Progress (%)</th>
                 <th>Timespent (hours)</th>
             </tr>
         </thead>
@@ -14,7 +17,7 @@
             <% for (var i=0; i<keys.length;i++) {%>
                 <tbody class="labels">
                     <tr>
-                        <td colspan="5">
+                        <td colspan="8">
                             <label for="<%=keys[i]%>"><%=keys[i]%> </label>
                             <input type="checkbox" name="<%=keys[i]%>" id="<%=keys[i]%>" data-toggle="toggle">
                         </td>
@@ -22,12 +25,19 @@
                 </tbody>
                 <tbody class="hide" style="display: none;">
                     <% for (var j=0; j<finish[keys[i]].length;j++) {%>
-                        <tr>
-                            <td><a href="https://issues.qup.vn/browse/<%=finish[keys[i]][j].key%>"><%=finish[keys[i]][j].key%></a> - <%=finish[keys[i]][j].summary%></td>
+                        <tr style="background-color: <%=finish[keys[i]][j].backgroundColor%>">
+                            <td><a href="https://issues.qup.vn/issues/?jql=parent%20%3D%20<%=finish[keys[i]][j].key%>%20ORDER%20BY%20due%20DESC"><%=finish[keys[i]][j].key%></a> - <%=finish[keys[i]][j].summary%></td>
+                            <% if(finish[keys[i]][j].overduedate < -1 && finish[keys[i]][j].backgroundColor == "white") {%>
+                                <td  style="background-color: red"><%=finish[keys[i]][j].status%></td>
+                            <%} else {%>
+                                <td><%=finish[keys[i]][j].status%></td>
+                            <%}%>
+                            <td><%=finish[keys[i]][j].point%></td>
                             <td><%=finish[keys[i]][j].duedate%></td>
-                            <td><%=finish[keys[i]][j].aggregateprogress.percent%></td>
+                            <td><%=finish[keys[i]][j].originduedate%></td>
                             <td><%=finish[keys[i]][j].subtasks.length%></td>
-                            <td><%=finish[keys[i]][j].aggregateprogress.progress/60/60%></td>
+                            <td><%=finish[keys[i]][j].aggregateprogress.percent%></td>
+                            <td><%=(finish[keys[i]][j].aggregateprogress.progress/60/60).toFixed(1)%> / <%=(finish[keys[i]][j].aggregateprogress.total/60/60).toFixed(1)%></td>
                         </tr>
                     <% } %>
                 </tbody>

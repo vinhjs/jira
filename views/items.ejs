@@ -1,20 +1,34 @@
 <head>
     <meta charset="UTF-8">
     <title>QUp Gamification - Items</title>
-    <link rel="stylesheet" href="/css/items.css">
+   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+   <link rel="stylesheet" href="/css/items.css">
 </head>
+
 <body>
-    <div class="box">
-        <% for (var i=0; i<items.length;i++) {%>
-        <div class="card">
-          <div class="imgBx">
-              <img src="/items/PNG/48/<%=items[i]%>.png">
-          </div>
-          <div class="details">
-              <h2>Item<br><span><%=items[i]%></span></h2>
-          </div>
+<% for (var i=0; i<items.length;i++) {%>
+<div class="card">
+<div class="img-avatar">
+    <a href="<%=items[i].homepage%>"><img src="/logo/<%=items[i].id%>.png"></a>
+</div>
+    <div class="card-text">
+        <div class="portada">
+        
         </div>
-      
+        <div class="title-total">   
+        <div class="title"><%=items[i].group.join("/")%></div>
+        <h2><%=items[i].name%></h2>
+
+    <div class="desc"><%=items[i].desc%></div>
+    <div class="actions">
+        <% for (var j=0; j<items[i].members.length;j++) {%>
+            <button><img src="<%=items[i].members[j]%>" style="height: 24px;width: 24px;"></img></button>
         <% } %>
+    </div></div>
+
     </div>
-  </body>
+</div>
+
+<% } %>
+</body>
+</html>

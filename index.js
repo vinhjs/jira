@@ -56,11 +56,11 @@ var groups = {
 }
 var jqls = [
     "project in (SL, KAN, QS, QQA)&expand=changelog",
-    'Sprint in (323) AND project = "Scrum Lab"&expand=changelog',
-    'Sprint = 325 AND project = "Scrum Lab" AND assignee in ('+groups.server+') AND updated >= 2019-07-01&expand=changelog',
-    'Sprint = 324 AND project = "Scrum Lab" AND assignee in ('+groups.web+') AND updated >= 2019-07-01&expand=changelog',
-    'Sprint = 327 AND project = "Scrum Lab" AND assignee in ('+groups.app+') AND updated >= 2019-07-01&expand=changelog',
-    'Sprint in (324,325,327) AND project = "Scrum Lab" AND updated >= 2019-07-01&expand=changelog'
+    'Sprint in (329) AND project = "Scrum Lab"&expand=changelog',
+    'Sprint = 332 AND project = "Scrum Lab" AND assignee in ('+groups.server+') AND updated >= 2019-07-01&expand=changelog',
+    'Sprint = 331 AND project = "Scrum Lab" AND assignee in ('+groups.web+') AND updated >= 2019-07-01&expand=changelog',
+    'Sprint = 333 AND project = "Scrum Lab" AND assignee in ('+groups.app+') AND updated >= 2019-07-01&expand=changelog',
+    'Sprint in (331,332,333) AND project = "Scrum Lab" AND updated >= 2019-07-01&expand=changelog'
 ];
 var whatsapp = require('./whatsapp');
 app.get('/test', function(req, res){
@@ -95,7 +95,8 @@ var all_users = {
     'an.nguyenp',
     'anh.nguyen',
     'oanh.nguyentl',
-    'hung.phan'
+    'hung.phan',
+    'tan.vo'
 ],
     dev: [
         'huy.nguyen',
@@ -113,6 +114,7 @@ var all_users = {
         'hung.phan'
     ],
     tester: [
+        'tan.vo',
         'vi.leh',
         'hoang.dinh',
         'tam.nguyen',
@@ -126,7 +128,18 @@ var all_users = {
         'anh.nguyen',
         'oanh.nguyentl'
     ]
-}
+};
+app.post('/api/generate_common', authMiddleware, function(req, res){
+    all_users.all.forEach(function(username){
+        jira_utils.getUserInfo(req.headers.authorization, username, function(err, info){
+            if (info) {
+                jira_utils.saveUserInfo(username, info, function(err, ok){})
+            }
+        })
+    })
+    gamification.generate_levels();
+    gamification.generate_items();
+})
 app.get('/api/report', function(req, res){
     jira_utils.getCache('latest', function(err, info){
         if (!err && info) {
@@ -351,7 +364,7 @@ app.post('/jql', authMiddleware, function(req, res){
             
             if (issue.fields.subtasks.length == 0) {
 
-                checkChangelog(issue, function(){
+                checkChangelog(req.headers.authorization, issue, function(){
 
                 })
                 if (!duedate && assigneeName && _.indexOf(["Story","Improvement","New Feature","Task"], issuetype) == -1 && project == "SL" && _.indexOf(["Open", "In Progress"], issuestatus) > -1){
@@ -425,7 +438,7 @@ app.post('/jql', authMiddleware, function(req, res){
             }
             if (issuetype === "Story") {
                 finish.point += _.get(issue, "fields.customfield_10004", 0);
-            } else if (assigneeName && _.indexOf(all_users.dev, assigneeName) > -1 && timeestimate){
+            } else if (assigneeName && _.indexOf(all_users.all, assigneeName) > -1 && timeestimate){
                 finish.point += _.get(issue, "fields.customfield_10004", 0);
                 //get estimate time
                 finish.barChartLogworkData.labels.push(assigneeName);
@@ -455,7 +468,7 @@ app.post('/jql', authMiddleware, function(req, res){
             }
             function getWorklog(cb){
                 //get log work info
-                jira_utils.getWorklog(startDate, issue.fields.updated, issue.key, req.headers.authorization, function(err, rs){
+                jira_utils.getWorklog(startDate, issue.fields.updated, issue.key, req.headers.authorization, true, function(err, rs){
                     count++;
                     if (rs && rs.length) {
                         rs.forEach(function(worklog){
@@ -491,7 +504,7 @@ app.post('/jql', authMiddleware, function(req, res){
                             finish.users[worklog.name][issuetype] += worklog.timeSpentSeconds;
                             
                             //barchart  
-                            if (_.indexOf(all_users.dev, worklog.name) > -1) {
+                            if (_.indexOf(all_users.all, worklog.name) > -1) {
                                 finish.barChartLogworkData.labels.push(worklog.name);
                                 var users = _.uniq(finish.barChartLogworkData.labels);                                    
                                 finish.barChartLogworkData.labels = users;
@@ -664,7 +677,7 @@ app.post('/jql', authMiddleware, function(req, res){
             finish.fouls = _.sortBy(finish.fouls, [function(o) { return o.user; }]);
             finish.mydata.logwork = _.sortBy(finish.mydata.logwork, [function(o) { return o.time; }]);
             finish.logwork = _.orderBy(finish.logwork, ['date', 'name'], ['asc', 'desc']);
-            gamification.getLeaderBoard(function(err, list){
+            gamification.getLeaderBoard(null, function(err, list){
                 finish.leaderboard = list;
                 list.forEach(function(user){
                     jira_utils.getUserInfo(req.headers.authorization, user.username, function(err, info){
@@ -673,13 +686,13 @@ app.post('/jql', authMiddleware, function(req, res){
                         }
                     })
                 })
-                jira_utils.cache("latest", finish);
+                // jira_utils.cache("latest", finish);
                 res.send(finish);
             })
         })
     }
 });
-function checkChangelog(issue, cb){
+function checkChangelog(auth, issue, cb){
     var changelog = _.get(issue, 'changelog.histories', []);
     var project = _.get(issue, "fields.project.key", '');
     if (project == "SL" && changelog && changelog.length) {
@@ -689,10 +702,35 @@ function checkChangelog(issue, cb){
                 var author = ch.author.name;
                 ch.items.forEach(function(item){
                     if (item.field == "status" && item.toString == "Test" && assigneeName) {
-                        gamification.changeStatus(issue.key, item.toString, assigneeName, ch.created, ch.id);
+                        jira_utils.getWorklog(startDate, issue.fields.updated, issue.key, auth, true, function(err, rs){
+                            if (rs && rs.length) {
+                                let valid = false;
+                                rs.forEach(function(worklog){
+                                    if (worklog.name == assigneeName && worklog.comment && worklog.timeSpentSeconds && (worklog.timeSpentSeconds/60) >= 15) {
+                                        valid = true;
+                                    }
+                                })
+                                if (valid) {
+                                    gamification.changeStatus(issue.key, item.toString, assigneeName, ch.created, ch.id);
+                                }
+                            }
+                        })
+                        
                     }
                     if (item.field == "status" && item.toString == "Done" && item.fromString == "Test" && author) {
-                        gamification.changeStatus(issue.key, item.toString, author, ch.created, ch.id);
+                        jira_utils.getWorklog(startDate, issue.fields.updated, issue.key, auth, true, function(err, rs){
+                            if (rs && rs.length) {
+                                let valid = false;
+                                rs.forEach(function(worklog){
+                                    if (worklog.name == author && worklog.comment && worklog.timeSpentSeconds && (worklog.timeSpentSeconds/60) >= 15) {
+                                        valid = true;
+                                    }
+                                })
+                                if (valid) {
+                                    gamification.changeStatus(issue.key, item.toString, author, ch.created, ch.id);                                    
+                                }
+                            }
+                        })
                     }
                 })
             }

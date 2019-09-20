@@ -10,7 +10,7 @@ var redisClient = redis.createClient({
     port: port,
     password: pw
 });
-redisClient.select(2);
+redisClient.select(3);
 redisClient.on('error', function (err) {
     console.log(new Date().toISOString()+ ' redisSetting connection error to - ' + err);
     process.exit(1);

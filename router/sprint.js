@@ -21,7 +21,7 @@ var authMiddleware = auth.connect(basic);
 
 
 var jqlTemplate = {
-	"35": 'Sprint in (324,325,327) AND issuetype in (Task, Improvement, Story)&expand=changelog'
+	"36": 'Sprint in (329) AND issuetype in (Task, Improvement, Story)&expand=changelog'
 }
 
 module.exports = function (app) {
@@ -29,7 +29,7 @@ module.exports = function (app) {
 		var finish = {
 			others: []
 		};
-		var jql = jqlTemplate[req.query.s || "35"];
+		var jql = jqlTemplate[req.query.s || "36"];
 		if (jql) {
 			var startAt = 0;
 			jira_utils.searchJQL(startAt, jql, req.headers.authorization, true, function (err, rs) {
@@ -73,14 +73,16 @@ module.exports = function (app) {
 								var duedate = _.get(issue, 'fields.duedate', null);
 								var issuelabels = _.get(issue, 'fields.labels', []);
 								var point = _.get(issue, "fields.customfield_10004", 0);
-								if (point){
-									//checkDueDate(issue, req.headers.authorization);
+								var changelog = _.get(issue, "changelog.histories", []);
+								//duedate
+								if (true){
+									// checkDueDate(issue, req.headers.authorization);
 									var link = "";
 									if (issuetype == "Improvement") {
 										link = "Improvement";
 									}
 									issuelabels.forEach(function(label){
-										if (label.indexOf("S35-") != -1) {
+										if (label.indexOf("S36-") != -1) {
 											link = label;
 										}
 										if (label.indexOf("Automation") != -1) {
@@ -98,11 +100,33 @@ module.exports = function (app) {
 									var tmp = {
 										summary: issue.fields.summary,
 										key: issue.key,
+										point: point,
 										subtasks: subtasks,
+										status: issuestatus,
 										aggregatetimespent: issue.fields.aggregatetimespent || 0,
 										aggregateprogress: issue.fields.aggregateprogress,
-										duedate: duedate
+										progress: issue.fields.progress,
+										duedate: duedate,
+										overduedate: moment.duration(new moment(duedate, 'YYYY-MM-DD').diff(new moment())).asDays(),
+										originduedate: ""
+									};
+									switch (issuestatus) {
+										case "Done":
+										case "Closed":
+											tmp.backgroundColor = "#c7ffc6";
+											break;
+										default:
+											tmp.backgroundColor = "white" 
 									}
+									changelog.forEach(function(ch){
+										if (ch.items && ch.items.length) {
+											ch.items.forEach(function(item){
+												if (item.field == "duedate" && item.fromString == null && item.toString) {
+													tmp.originduedate = item.to
+												}
+											})
+										}
+									})
 									if (link) {
 										if (finish[link]) {
 											finish[link].push(tmp)
@@ -112,13 +136,23 @@ module.exports = function (app) {
 									} else {
 										finish.others.push(tmp);
 									}
+									
 									cback();
 								} else {
+									// issuelabels.forEach(function(label){
+									// 	if (label.indexOf("S36-") != -1) {
+									// 		checkDueDate(issue, req.headers.authorization);
+									// 	}
+									// })
 									cback();
 								}
 						}, function(){
+							var keys = _.keys(finish);
+							keys.forEach(function(key){
+								finish[key] = _.sortBy(finish[key], ['status','duedate']);
+							})
 							console.log("DONE");
-							res.render('sprint', {finish: finish, keys: _.keys(finish)})
+							res.render('sprint', {finish, keys})
 						})
 					}
 				} else {
@@ -132,8 +166,8 @@ module.exports = function (app) {
 }
 
 function checkDueDate(issue, auth){
-	var duedate = _.get(issue, 'fields.duedate', null);
-	if (!duedate) {
+	// var duedate = _.get(issue, 'fields.duedate', null);
+	// if (!duedate) {
 		var lastDuedate = null;
 		async.forEach(issue.fields.subtasks, function(subtask, cback){
 			jira_utils.getIssueInfo(subtask.key, auth, function(err, result){
@@ -153,12 +187,12 @@ function checkDueDate(issue, auth){
 				}
 			})
 		}, function(){
-			console.log("Duedate", issue.key, lastDuedate);
 			if (lastDuedate) {
-				jira_utils.updateDuedate(issue.key, lastDuedate, auth, function(){})
+				console.log("Duedate", issue.key, lastDuedate.format("YYYY-MM-DD"));
+				jira_utils.updateDuedate(issue.key, lastDuedate.format("YYYY-MM-DD"), auth, function(){})
 			}
 		})
-	}
+	// }
 }
 function checkStory(issue, auth, cb){
 	async.forEach(issue.fields.subtasks, function(subtask, cback){

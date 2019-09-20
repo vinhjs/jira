@@ -71,7 +71,7 @@ var getIssueInfo = function(key, auth, cb){
         }
     });
 }
-var getWorklog = function(startDate, updated, key, auth, cb){
+var getWorklog = function(startDate, updated, key, auth, incrPoint, cb){
     var url = 'https://issues.qup.vn/rest/api/2/issue/'+key+'/worklog';
     getCacheDb(key, updated, function(err, data) {
         if (!err && data) {
@@ -91,7 +91,9 @@ var getWorklog = function(startDate, updated, key, auth, cb){
                     var rs = _.reduce(result.worklogs, function (acc, el) {
                         var durationFromStartDate = moment.duration(startDate.diff(moment(el.started.slice(0,19), "YYYY-MM-DDTHH:mm:ss"))).asDays();
                         if (durationFromStartDate < 1) {
-                            gamification.logwork(key, el.id, el.updateAuthor.name, el.timeSpentSeconds/60, el.started)
+                            if (incrPoint) {
+                                gamification.logwork(key, el.id, el.updateAuthor.name, el.timeSpentSeconds/60, el.started, el.comment, el.created);
+                            }
                             acc.push({
                                 id: el.id,
                                 name: el.updateAuthor.name,

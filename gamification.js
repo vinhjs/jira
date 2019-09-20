@@ -1,37 +1,151 @@
 var redisClient = require('./config/redis').redisClient;
+const redisLock = require('redis-lock')(redisClient);
 var _ = require('lodash');
 var async = require('async');
 var moment = require('moment');
 
 const SCORE = {
     change_status: {
-        "Test": 200,
-        "Done": 200
+        "Test": 80,
+        "Done": 80
+    }
+}
+const MAX_LOGWORK_PER_DAY = 600; //600 mins = 1- hours
+const SPRINT_TIMES = {
+    "s35s36": {
+        from: "2019-08-08",
+        to: "2019-09-17"
+    },
+    "s37": {
+        from: "2019-09-18",
+        to: "2019-09-30"
     }
 }
 function getItems(cb){
-    redisClient.smembers("QUP:Items", function(err, items){
-        items = items.sort();
-        cb(err, items);
+    const low = require('lowdb')
+    const FileSync = require('lowdb/adapters/FileSync')
+
+    const adapter = new FileSync('items.json')
+    const db = low(adapter);
+    const items = db.get('items').value();
+
+    var avatars = {}
+    async.forEachLimit(items, 50, function(item, cback){
+        redisClient.SMEMBERS("QUP:Item_Users:" + item.id, function(err, members){
+            if (members && members.length) {
+                var mbs = [];
+                async.forEach(members, function(mb, cback){
+                    if (avatars[mb]){
+                        mbs.push(avatars[mb]);
+                        cback();
+                    } else {
+                        redisClient.get("QUP:User:" + mb, function(err, info){
+                            try {
+                                let user_info = JSON.parse(info);
+                                avatars[mb] = user_info.avatarUrls["24x24"];
+                                mbs.push(user_info.avatarUrls["24x24"]);
+                                cback();
+                            } catch (ex) {
+                                cback();
+                            }
+                        });
+                    }
+                }, function(){
+                    item.members = mbs;
+                    cback();
+                })
+            } else {
+                item.members = [];
+                cback();
+            }
+        })
+    }, function(){
+        cb(null, items);
     })
 }
-function logwork(issue, logworkId, username, point, started){
-    if (point > 360) {
-        point = 360;
+function logwork(issue, logworkId, username, point, started, comment, created){
+    if (point > 180) {
+        point = 180;
     }
-    redisClient.sadd('QUP:logworkId', logworkId, function(err, ok){
-        if (ok){
-            var now = new Date();
-            console.log(now.toISOString(), "logwork", logworkId, username, point);
-            redisClient.zincrby('QUP:leaderboard', point, username);
-            var today = started.slice(0,10)
-            redisClient.zincrby('QUP:leaderboard_date:' + today, point, username);
-            redisClient.zincrby('QUP:all_logwork_date', point, today);
-            var score = new Date(started).getTime();
-            redisClient.zadd('QUP:activities_all', score, JSON.stringify({time: started, point: point, action: "logwork", issue: issue, id: logworkId, msg: started + ": " +username + " earned " + point + " points, logwork for issues: " + issue}))
-            redisClient.zadd('QUP:activities:' + username, score, JSON.stringify({time: started, point: point, action: "logwork", issue: issue, id: logworkId, msg: started + ": You earned " + point + " points, logwork for issues: " + issue}))
-        }
+    var now = new Date();
+
+    redisLock('LOCK_Lockwork:' + username, 5000, function (unLock) {
+        var score = new Date(started).getTime();
+        redisClient.sadd('QUP:logworkId', logworkId, function(err, ok){
+            if (ok){
+                if (comment) {
+                    var momentStarted = moment(started.slice(0,19), "YYYY-MM-DDTHH:mm:ss");
+                    var momentCreated = moment(created.slice(0,19), "YYYY-MM-DDTHH:mm:ss");
+                    var durationCreateStart = moment.duration(momentCreated.diff(momentStarted)).asDays();
+                    if (durationCreateStart <= 3) {
+                        var today = started.slice(0,10);
+                        redisClient.ZSCORE('QUP:logwork_date:' + today, username, function(err, current){
+                            if (!err) {
+                                current = current || 0;
+                                try {
+                                    let available = 0;
+                                    current = parseInt(current);
+                                    if (current < MAX_LOGWORK_PER_DAY) {
+                                        available = MAX_LOGWORK_PER_DAY - current;
+                                    } else {
+                                        available = 0;
+                                    }
+                                    if (available) {
+                                        if (available < point) {
+                                            point = available;
+                                        }
+                                        redisClient.zincrby('QUP:logwork_date:' + today, point, username, function(err, current){
+                                            console.log(now.toISOString(), "logwork", logworkId, username, point);
+                                            redisClient.zincrby('QUP:leaderboard_date:' + today, point, username);
+                                            redisClient.zincrby('QUP:leaderboard', point, username);
+                                            
+                                
+                                            _.keys(SPRINT_TIMES).forEach(function(key){
+                                                if(new moment(today).isBetween(new moment(SPRINT_TIMES[key].from, "YYYY-MM-DD"), new moment(SPRINT_TIMES[key].to, "YYYY-MM-DD"), null, '[]')) {
+                                                    redisClient.zincrby('QUP:leaderboard_sprint:' + key, point, username);
+                                                }
+                                            })
+                                
+                                            
+                                            redisClient.zincrby('QUP:all_logwork_date', point, today);
+                                            
+                                            redisClient.zadd('QUP:activities_all', score, JSON.stringify({time: started, point: point, action: "logwork", issue: issue, id: logworkId, msg: started + ": " +username + " earned " + point + " points, logwork for issues: " + issue}))
+                                            redisClient.zadd('QUP:activities:' + username, score, JSON.stringify({time: started, point: point, action: "logwork", issue: issue, id: logworkId, msg: started + ": You earned " + point + " points, logwork for issues: " + issue}))
+                                            unLock(function () {});
+                                        })
+                                    } else {
+                                        //over perday
+                                        redisClient.zadd('QUP:warn_activities_all', score, JSON.stringify({msg: started + ": " +username + " earned " + point + " points, logwork for issues: " + issue + " WARNING: OVER LOGWORK TODAY"}))
+                                            
+                                        console.log(now.toISOString(), "logwork", logworkId, username, 0, "over today");
+                                        unLock(function () {});
+                                    }
+                                } catch (ex) {
+                                    console.log('logwork exception', ex);
+                                    unLock(function () {});
+                                }
+                            } else {
+                                unLock(function () {});
+                            }
+                        });                        
+                    } else {
+                        console.log(now.toISOString(), "logwork", logworkId, username, 0, "overtime to logwork");
+                        redisClient.zadd('QUP:warn_activities_all', score, JSON.stringify({msg: started + ": " +username + " earned " + point + " points, logwork for issues: " + issue + " WARNING: OVERTIME TO LOGWORK, Logwork must have less than 3 days from today"}))
+                                        
+                        unLock(function () {});
+                    }
+                } else {
+                    console.log(now.toISOString(), "logwork", logworkId, username, 0, "no comment");
+                    redisClient.zadd('QUP:warn_activities_all', score, JSON.stringify({msg: started + ": " +username + " earned " + point + " points, logwork for issues: " + issue + " WARNING: no comment"}))
+                        
+                    unLock(function () {});
+                }
+            } else {
+                unLock(function () {});
+            }
+        })
     })
+
 }
 function changeStatus(issue, toStatus, username, created, id){
     redisClient.sadd("QUP:changeStatus", issue + "_" + toStatus + "_" + username, function(err, ok){
@@ -40,13 +154,19 @@ function changeStatus(issue, toStatus, username, created, id){
             var now = new Date();
             console.log(now.toISOString(), "changeStatus", issue, toStatus, username, point);
             redisClient.zincrby('QUP:leaderboard', point, username);
-            var today = created.slice(0,10)
+            var today = created.slice(0,10);
+            _.keys(SPRINT_TIMES).forEach(function(key){
+                if(new moment(today).isBetween(new moment(SPRINT_TIMES[key].from, "YYYY-MM-DD"), new moment(SPRINT_TIMES[key].to, "YYYY-MM-DD"), null, '[]')) {
+                    redisClient.zincrby('QUP:leaderboard_sprint:' + key, point, username);
+                }
+            })
             redisClient.zincrby('QUP:leaderboard_date:' + today, point, username);
             var score = new Date(created).getTime();
             redisClient.SRANDMEMBER("QUP:Items", function(err, rand){
                 if (rand) {
                     redisClient.HINCRBY("QUP:User_Items:" + username, rand, 1, function(err, ok){
                         if (ok) {
+                            redisClient.sadd("QUP:Item_Users:" + rand, username);
                             redisClient.zadd('QUP:activities_all', score, JSON.stringify({time: created, item: rand, action: "changeStatus", issue: issue, id: id, msg: created + ": " +username + " earned an item ("+rand+"), change status to "+toStatus+" for issues: " + issue}))
                             redisClient.zadd('QUP:activities:' + username, score, JSON.stringify({time: created, item: rand, action: "changeStatus", issue: issue, id: id, msg: created + ": You earned an item ("+rand+"), change status to "+toStatus+" for issues: " + issue}))
                         }
@@ -58,7 +178,7 @@ function changeStatus(issue, toStatus, username, created, id){
         }
     })
 }
-function getLeaderBoard(cb){
+function getLeaderBoard(query, cb){
     redisClient.ZREVRANGE('QUP:leaderboard', 0, -1, "WITHSCORES", function(err, list){
         var rs = []
         if (list && list.length) {
@@ -137,16 +257,48 @@ function getLeaderBoard(cb){
                             cback(null, 0)
                         }
                     });
+                },
+                s35s36: function(cback){
+                    redisClient.ZSCORE('QUP:leaderboard_sprint:s35s36', item.username, function(err, score) {
+                        if (score) {
+                            cback(null, parseInt(score));
+                        } else {
+                            cback(null, 0)
+                        }
+                    });
+                },
+                s37: function(cback){
+                    redisClient.ZSCORE('QUP:leaderboard_sprint:s37', item.username, function(err, score) {
+                        if (score) {
+                            cback(null, parseInt(score));
+                        } else {
+                            cback(null, 0)
+                        }
+                    });
                 }
             }, function(err, rs){
                 item.info = rs.info;
                 item.items = rs.items;
                 item.level = rs.level;
                 item.today = rs.today;
+                item.s35s36 = rs.s35s36;
+                item.s37 = rs.s37;
                 cback();
             })
         }, function(){
             // console.log(JSON.stringify(rs));
+            if (query) {
+                if (query.sort == "sprev") {
+                    rs = _.orderBy(rs, ['s35s36', 'point'], ['desc', 'desc'])
+                }
+                if (query.sort == "scur") {
+                    rs = _.orderBy(rs, ['s37', 'point'], ['desc', 'desc'])
+                }
+                if (query.sort == "today") {
+                    rs = _.orderBy(rs, ['today', 'point'], ['desc', 'desc'])
+                }
+            }
+            
             cb(err, rs);
         })
         
@@ -297,6 +449,49 @@ function checkGifts(items, cb){
         })
     })
 }
+function generate_levels(){
+    redisClient.zadd("QUP:LEVELS_POINT", 1000, 1);
+    redisClient.zadd("QUP:LEVELS_POINT", 3000, 2);
+    redisClient.zadd("QUP:LEVELS_POINT", 6000, 3);
+    redisClient.zadd("QUP:LEVELS_POINT", 10000, 4);
+    redisClient.zadd("QUP:LEVELS_POINT", 16000, 5);
+    redisClient.zadd("QUP:LEVELS_POINT", 23000, 6);
+    redisClient.zadd("QUP:LEVELS_POINT", 31000, 7);
+    redisClient.zadd("QUP:LEVELS_POINT", 40000, 8);
+    redisClient.zadd("QUP:LEVELS_POINT", 50000, 9);
+    redisClient.zadd("QUP:LEVELS_POINT", 61000, 10);
+}
+function generate_items(){
+    const low = require('lowdb')
+    const FileSync = require('lowdb/adapters/FileSync')
+
+    const adapter = new FileSync('items.json')
+    const db = low(adapter);
+    const items = db.get('items').value();
+    items.forEach(function(item){
+        redisClient.sadd('QUP:Items', item.id);
+    })
+}
+//    redisClient.keys("QUP:User_Items:*", function(err, keys){
+//         if (!err && keys) {
+//             async.forEach(keys, function(key, cback){
+//                 redisClient.HGETALL(key, function(err, hash){
+//                     if (!err && hash) {
+//                         var username = key.split(":")[2];
+//                         async.forEach(_.keys(hash), function(k, cback){
+//                             redisClient.sadd("QUP:Item_Users:" + k, username, function(){
+//                                 cback();
+//                             })
+//                         }, function(){
+//                             cback();
+//                         })
+//                     } else {
+//                         cback();
+//                     }
+//                 })
+//             })
+//         }
+//     })
 module.exports = {
     logwork,
     getLeaderBoard,
@@ -304,5 +499,7 @@ module.exports = {
     checkStatus,
     changeStatus,
     getItems,
-    checkGifts
+    checkGifts,
+    generate_levels,
+    generate_items
 }

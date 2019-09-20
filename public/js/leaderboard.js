@@ -76,7 +76,7 @@ tableRow.forEach(tableRow => {
     for (var i=0; i< list_items.length; i++){
       for (var j = 0; j < list_items[i].total; j++) {
         html+= `
-        <img src="/items/PNG/48/${list_items[i].item}.png">
+        <img src="/logo/${list_items[i].item}.png" title="${list_items[i].item}" alt="${list_items[i].item}">
       `
       }
       
