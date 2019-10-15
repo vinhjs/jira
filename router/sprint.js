@@ -21,7 +21,7 @@ var authMiddleware = auth.connect(basic);
 
 
 var jqlTemplate = {
-	"36": 'Sprint in (329) AND issuetype in (Task, Improvement, Story)&expand=changelog'
+	"37": 'Sprint in (331, 332, 333) AND issuetype in (Task, Improvement, Story)&expand=changelog'
 }
 
 module.exports = function (app) {
@@ -29,7 +29,7 @@ module.exports = function (app) {
 		var finish = {
 			others: []
 		};
-		var jql = jqlTemplate[req.query.s || "36"];
+		var jql = jqlTemplate[req.query.s || "37"];
 		if (jql) {
 			var startAt = 0;
 			jira_utils.searchJQL(startAt, jql, req.headers.authorization, true, function (err, rs) {
@@ -75,7 +75,7 @@ module.exports = function (app) {
 								var point = _.get(issue, "fields.customfield_10004", 0);
 								var changelog = _.get(issue, "changelog.histories", []);
 								//duedate
-								if (true){
+								if (point){
 									// checkDueDate(issue, req.headers.authorization);
 									var link = "";
 									if (issuetype == "Improvement") {
@@ -83,6 +83,9 @@ module.exports = function (app) {
 									}
 									issuelabels.forEach(function(label){
 										if (label.indexOf("S36-") != -1) {
+											link = label;
+										}
+										if (label.indexOf("S37-") != -1) {
 											link = label;
 										}
 										if (label.indexOf("Automation") != -1) {
@@ -113,6 +116,8 @@ module.exports = function (app) {
 									switch (issuestatus) {
 										case "Done":
 										case "Closed":
+										case "In Lab":
+										case "In Beta":
 											tmp.backgroundColor = "#c7ffc6";
 											break;
 										default:

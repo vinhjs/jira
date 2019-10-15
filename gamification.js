@@ -21,6 +21,12 @@ const SPRINT_TIMES = {
         to: "2019-09-30"
     }
 }
+const TROPHIES = {
+    logwork: {
+        time: 3,
+        day: 5
+    }
+}
 function getItems(cb){
     const low = require('lowdb')
     const FileSync = require('lowdb/adapters/FileSync')
@@ -162,8 +168,17 @@ function changeStatus(issue, toStatus, username, created, id){
             })
             redisClient.zincrby('QUP:leaderboard_date:' + today, point, username);
             var score = new Date(created).getTime();
-            redisClient.SRANDMEMBER("QUP:Items", function(err, rand){
-                if (rand) {
+            redisClient.get("QUP:Item_Id:" + id, function(err, it){
+                if (it) {
+                    next(it);
+                } else {
+                    redisClient.SRANDMEMBER("QUP:Items", function(err, rand){
+                        if (rand) {
+                            next(rand);
+                        }
+                    })
+                }
+                function next(rand){
                     redisClient.HINCRBY("QUP:User_Items:" + username, rand, 1, function(err, ok){
                         if (ok) {
                             redisClient.sadd("QUP:Item_Users:" + rand, username);
@@ -492,6 +507,19 @@ function generate_items(){
 //             })
 //         }
 //     })
+// redisClient.ZREVRANGE('QUP:activities_all', 0, -1, function(err, list){
+//     async.forEachLimit(list, 10, function(item, cback){
+//         item = JSON.parse(item);
+//         if (item.action == "changeStatus" && item.item) {
+//             console.log(item.id, item.item);
+//             redisClient.set("QUP:Item_Id:" + item.id, item.item, function(){
+//                 cback();
+//             })
+//         } else {
+//             cback();
+//         }
+//     })
+// })
 module.exports = {
     logwork,
     getLeaderBoard,
