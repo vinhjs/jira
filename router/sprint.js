@@ -21,15 +21,26 @@ var authMiddleware = auth.connect(basic);
 
 
 var jqlTemplate = {
-	"37": 'Sprint in (331, 332, 333) AND issuetype in (Task, Improvement, Story)&expand=changelog'
+	"37": 'Sprint in (331, 332, 333) AND issuetype in (Task, Improvement, Story)&expand=changelog',
+	"38": 'Sprint in (335,336,337) AND issuetype in (Task, Improvement, Story)&expand=changelog',
+};
+var des = {
+	"S38-1": "Setting to hide payment methods on Driver App before P.O.B",
+	"S38-2": "Corp project",
+	"S38-3": "P.O.B distance too far",
+	"S38-4": "Limit DO by country",
+	"S38-5": "Asking driver to join queue when driver travel into queue area",
+	"S38-6": "Support multiple wallets for Driver & Pax to top up",
+	"S38-7": "Integrate PayMaYa for Avis driver to top up credit wallet",
+	"S38-8": "Search accounts by 'Module Search' instead of query MongoDB - Customer/Driver",
+	"S38-9": "Hydra - Enhance 'Cue' - actions Them task cho DMC & CC"
 }
-
 module.exports = function (app) {
 	app.get('/sprint', authMiddleware, function (req, res) {
 		var finish = {
 			others: []
 		};
-		var jql = jqlTemplate[req.query.s || "37"];
+		var jql = jqlTemplate[req.query.s || "38"];
 		if (jql) {
 			var startAt = 0;
 			jira_utils.searchJQL(startAt, jql, req.headers.authorization, true, function (err, rs) {
@@ -43,24 +54,24 @@ module.exports = function (app) {
 					var tmp = [];
 					if(total>100){                                
 						while(startAt <= total){
-								tmp.push(startAt);
-								startAt += 100;
+							tmp.push(startAt);
+							startAt += 100;
 						}
 					}
 					if (tmp.length) {
-							async.forEachLimit(tmp, 5, function(startAt, cback){
-									jira_utils.searchJQL(startAt, jql, req.headers.authorization, false, function(err, rs){
-											var result = rs.search;
-											if (result && result.total) {   
-													totalResult = _.union(totalResult, result.issues);
-											}
-											cback();
-									})
-							}, function(){
-									finishSearch();
+						async.forEachLimit(tmp, 5, function(startAt, cback){
+							jira_utils.searchJQL(startAt, jql, req.headers.authorization, false, function(err, rs){
+								var result = rs.search;
+								if (result && result.total) {   
+										totalResult = _.union(totalResult, result.issues);
+								}
+								cback();
 							})
-					} else {
+						}, function(){
 							finishSearch();
+						})
+					} else {
+						finishSearch();
 					}
 					function finishSearch(){
 						async.forEachLimit(totalResult, 10, function(issue, cback){
@@ -75,7 +86,7 @@ module.exports = function (app) {
 								var point = _.get(issue, "fields.customfield_10004", 0);
 								var changelog = _.get(issue, "changelog.histories", []);
 								//duedate
-								if (point){
+								if (true){
 									// checkDueDate(issue, req.headers.authorization);
 									var link = "";
 									if (issuetype == "Improvement") {
@@ -87,6 +98,9 @@ module.exports = function (app) {
 										}
 										if (label.indexOf("S37-") != -1) {
 											link = label;
+										}
+										if (des[label]) {
+											link = des[label];
 										}
 										if (label.indexOf("Automation") != -1) {
 											link = label;
